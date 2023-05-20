@@ -1,6 +1,10 @@
 import poe
 import logging
 import sys
+import json
+
+
+OUTPUT_CHATBOT = r'./data/output2.txt'
 
 
 query_json = """"{
@@ -20,13 +24,18 @@ prompt = query_json.replace("[[QUERY]]",question)
 
 #send a message and immediately delete it
 token = sys.argv[1]
+
 poe.logger.setLevel(logging.INFO)
 client = poe.Client(token)
 
 message = prompt
-print('fpt asking: ',message)
-for chunk in client.send_message("chinchilla", message, with_chat_break=True):
-  print(chunk["text_new"], end="", flush=True)
+
+with open(OUTPUT_CHATBOT, 'w') as f:
+  for chunk in client.send_message("chinchilla", message, with_chat_break=True):
+    print(chunk["text_new"], end="", flush=True)
+    f.write(chunk["text_new"])
+
 
 #delete the 3 latest messages, including the chat break
 client.purge_conversation("chinchilla", count=3)
+print(f'Results written to {OUTPUT_CHATBOT}')
