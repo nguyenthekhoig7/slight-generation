@@ -4,7 +4,7 @@ import sys
 import json
 
 
-OUTPUT_CHATBOT = r'./data/output2.txt'
+OUTPUT_CHATBOT = r"./data/output2.txt"
 
 
 query_json = """"{
@@ -15,27 +15,28 @@ query_json = """"{
        }
     }"""
 
-presentation_title = input("What do you want to make a presentation about? >")
-question = "Generate a 10 slide presentation for the topic. Produce 50 to 60 words per slide. " + presentation_title + ".Each slide should have a  {{header}}, {{content}}. The final slide should be a list of discussion questions. Return as JSON."
+presentation_title = input("What do you want to make a presentation about? \n >>> ")
+question = (
+    "Generate a 10 slide presentation for the topic. Produce 50 to 60 words per slide. "
+    + presentation_title
+    + ". Each slide should have a  {{header}}, {{content}}. The final slide should be a list of discussion questions. Return as JSON."
+)
 
-prompt = query_json.replace("[[QUERY]]",question)
+prompt = query_json.replace("[[QUERY]]", question)
 
 
-
-#send a message and immediately delete it
+# send a message and immediately delete it
 token = sys.argv[1]
 
 poe.logger.setLevel(logging.INFO)
 client = poe.Client(token)
 
-message = prompt
-
-with open(OUTPUT_CHATBOT, 'w') as f:
-  for chunk in client.send_message("chinchilla", message, with_chat_break=True):
-    print(chunk["text_new"], end="", flush=True)
-    f.write(chunk["text_new"])
+with open(OUTPUT_CHATBOT, "w") as f:
+    for chunk in client.send_message("chinchilla", prompt, with_chat_break=True):
+        print(chunk["text_new"], end="", flush=True)
+        f.write(chunk["text_new"])
 
 
-#delete the 3 latest messages, including the chat break
+# delete the 3 latest messages, including the chat break
 client.purge_conversation("chinchilla", count=3)
-print(f'Results written to {OUTPUT_CHATBOT}')
+print(f"Results written to {OUTPUT_CHATBOT}")

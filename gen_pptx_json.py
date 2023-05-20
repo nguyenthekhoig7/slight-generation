@@ -3,12 +3,14 @@ import collections.abc
 from pptx import Presentation
 from pptx.util import Inches
 import re
+import os
 
-REPONSE_FILE = r'data\output2.txt'
-TEMPLATE_PPTX = r"./data/samples_template.pptx"
-OUTPUT_PPTX = r'data\output_slide_json2.pptx'
+DATA_FOLDER = r"data"
+REPONSE_FILE = os.path.join(DATA_FOLDER, "output2.txt")
+TEMPLATE_PPTX = os.path.join(DATA_FOLDER, "samples_template.pptx")
+OUTPUT_PPTX = os.path.join(DATA_FOLDER, "output_slide_json2.pptx")
 
-with open(REPONSE_FILE, 'r') as f:
+with open(REPONSE_FILE, "r") as f:
     response = f.read()
 
 
@@ -16,17 +18,15 @@ with open(REPONSE_FILE, 'r') as f:
 match = re.search(r"{(.*?)]\n}", response, re.DOTALL)
 if match:
     jsontext = match.group(0)
-    # print(match)
 else:
-    print('Cannot find json in the response') 
-
+    print("Cannot find json in the response")
 
 
 # create presentation (from template, or new blank one)
 try:
     slides_json = json.loads(jsontext)
 except:
-    print('Cannot extract json from text, here is the original text: \n', jsontext)
+    print("Cannot extract json from text, here is the original text: \n", jsontext)
 
 try:
     prs = Presentation(TEMPLATE_PPTX)
@@ -34,11 +34,11 @@ except:
     prs = Presentation()
 
 # delete all existed slides
-for i in range(len(prs.slides)-1, -1, -1): 
+for i in range(len(prs.slides) - 1, -1, -1):
     rId = prs.slides._sldIdLst[i].rId
     prs.part.drop_rel(rId)
     del prs.slides._sldIdLst[i]
-    
+
 # # Analyze the template's layouts
 # print('About this template:')
 # print("number of layouts: ", len(prs.slide_layouts))
@@ -53,7 +53,7 @@ for i in range(len(prs.slides)-1, -1, -1):
 the_key = list(slides_json.keys())[0]
 for slide in slides_json[the_key]:
     print(slide)
-    header, content = (slide['header'], slide['content'])    
+    header, content = (slide["header"], slide["content"])
     print(f"Header: {header},\ncontent: {content}")
 
     slide_layout = prs.slide_layouts[3]
@@ -61,8 +61,8 @@ for slide in slides_json[the_key]:
 
     title = new_slide.shapes.title
     title.text = header
-    
-    left, top, width, height = (Inches(1.5),Inches(1.5),Inches(6),Inches(6))
+
+    left, top, width, height = (Inches(1.5), Inches(1.5), Inches(6), Inches(6))
     textbox = new_slide.shapes.add_textbox(left, top, width, height)
     text_frame = textbox.text_frame
     text_frame.text = content
