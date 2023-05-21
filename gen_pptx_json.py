@@ -7,12 +7,14 @@ import os
 
 DATA_FOLDER = r"data"
 REPONSE_FILE = os.path.join(DATA_FOLDER, "output2.txt")
-TEMPLATE_PPTX = os.path.join(DATA_FOLDER, "samples_template.pptx")
+TEMPLATE_PPTX = os.path.join(DATA_FOLDER, "samples_template_2.pptx")
 OUTPUT_PPTX = os.path.join(DATA_FOLDER, "output_slide_json2.pptx")
+
+FONT_FOLDER = r"fonts"
+CHOSEN_FONT = os.path.join(FONT_FOLDER, "Calibri Regular.ttf")
 
 with open(REPONSE_FILE, "r") as f:
     response = f.read()
-
 
 # get json data from text response
 match = re.search(r"{(.*?)]\n}", response, re.DOTALL)
@@ -30,8 +32,10 @@ except:
 
 try:
     prs = Presentation(TEMPLATE_PPTX)
+    print("Use template")
 except:
     prs = Presentation()
+    print("Create blank slide")
 
 # delete all existed slides
 for i in range(len(prs.slides) - 1, -1, -1):
@@ -39,22 +43,10 @@ for i in range(len(prs.slides) - 1, -1, -1):
     prs.part.drop_rel(rId)
     del prs.slides._sldIdLst[i]
 
-# # Analyze the template's layouts
-# print('About this template:')
-# print("number of layouts: ", len(prs.slide_layouts))
-# for i in range(len(prs.slide_layouts)):
-#     layout = prs.slide_layouts[i]
-#     print(f'layout #{i}')
-#     for shape in layout.placeholders:
-#         print(shape.name, '  ***  ', shape.placeholder_format.type)
-
-
 # create slides
-the_key = list(slides_json.keys())[0]
-for slide in slides_json[the_key]:
-    print(slide)
+key = list(slides_json.keys())[0]
+for slide in slides_json[key]:
     header, content = (slide["header"], slide["content"])
-    print(f"Header: {header},\ncontent: {content}")
 
     slide_layout = prs.slide_layouts[3]
     new_slide = prs.slides.add_slide(slide_layout)
@@ -62,11 +54,17 @@ for slide in slides_json[the_key]:
     title = new_slide.shapes.title
     title.text = header
 
+    for i, place_holder in enumerate(new_slide.placeholders):
+        if i == 0:
+            continue
+        sp = place_holder.element
+        sp.getparent().remove(sp)
+
     left, top, width, height = (Inches(1.5), Inches(1.5), Inches(6), Inches(6))
     textbox = new_slide.shapes.add_textbox(left, top, width, height)
     text_frame = textbox.text_frame
     text_frame.text = content
-    text_frame.fit_text(max_size=22)
+    text_frame.fit_text(font_file=CHOSEN_FONT, max_size=22)
     text_frame.word_wrap = True
 
 
