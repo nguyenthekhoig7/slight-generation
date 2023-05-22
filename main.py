@@ -31,9 +31,7 @@ else:
     print("Cannot query from API. Please try again")
 
 content_json = create_content_json(output_txt_path)
-if content_json:
-    content_json = json.loads(content_json)
-else:
+if content_json is None:
     print("Cannot extract json from text. Please try again !!!")
 
 try:
@@ -41,7 +39,7 @@ try:
     print(f"Use template from {TEMPLATE_PPTX}")
 except:
     prs = Presentation()
-    print(f"Cannot use template from {TEMPLATE_PPTX}. Create a blank file.")
+    print(f"Cannot use template from {TEMPLATE_PPTX}. Creating a blank file.")
 
 for i in range(len(prs.slides) - 1, -1, -1):
     rId = prs.slides._sldIdLst[i].rId
