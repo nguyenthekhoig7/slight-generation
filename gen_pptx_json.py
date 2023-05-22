@@ -1,12 +1,12 @@
-import json
-import collections.abc
-from pptx import Presentation
-from pptx.util import Inches
 import os
-from simple_image_download import simple_image_download as simp
-from PIL import Image
+import json
 import random
-from src.utils import *
+from PIL import Image
+import collections.abc
+from pptx.util import Inches
+from pptx import Presentation
+from src.image_download import Downloader
+from src.text_gen import *
 
 DATA_FOLDER = r"data"
 REPONSE_FILE = os.path.join(DATA_FOLDER, "output2.txt")
@@ -15,6 +15,8 @@ OUTPUT_PPTX = os.path.join(DATA_FOLDER, "output_slide_json2.pptx")
 
 FONT_FOLDER = r"fonts"
 CHOSEN_FONT = os.path.join(FONT_FOLDER, "Calibri Regular.ttf")
+
+downloader = Downloader()
 
 content_json = create_content_json(REPONSE_FILE)
 if content_json:
@@ -42,8 +44,7 @@ for item in content_json[key]:
     query = header.replace(" ", "_")
     image = None
     if query != "Introduction":
-        downloader = simp.Downloader()
-        downloader.download(query, 10)
+        downloader.download(query)
         image_names = os.listdir(os.path.join("simple_images", query))
         while True:
             path_to_image = os.path.join(
@@ -54,7 +55,7 @@ for item in content_json[key]:
             image = Image.open(path_to_image)
             if image.size != (80, 36):
                 break
-
+        downloader.flush_cache()
     slide_layout = prs.slide_layouts[3]
     slide = prs.slides.add_slide(slide_layout)
 

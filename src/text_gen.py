@@ -1,5 +1,18 @@
 import poe
 import logging
+import re
+
+
+def create_content_json(reponse_file: str):
+    with open(reponse_file, "r") as f:
+        response = f.read()
+    match = re.search(r"{(.*?)]\n}", response, re.DOTALL)
+    if match:
+        content_json = match.group(0)
+    else:
+        return None
+
+    return content_json
 
 
 def create_query(topic: str, n_slides: int = 10, n_words_per_slide: int = 55):
