@@ -1,11 +1,9 @@
 import poe
 import logging
-import sys
 
-OUTPUT_CHATBOT = r"./data/output2.txt"
-# TODO: create function to generate content
 
-query_json = """"{
+def create_query(topic: str, n_slides: int = 10, n_words_per_slide: int = 55):
+    query = """"{
     "input_text": "[[QUERY]]",
     "output_format": "json",
     "json_structure": {
@@ -13,28 +11,29 @@ query_json = """"{
        }
     }"""
 
-presentation_title = input("What do you want to make a presentation about? \n >>> ")
-question = (
-    "Generate a 10 slide presentation for the topic. Produce 50 to 60 words per slide. "
-    + presentation_title
-    + ". Each slide should have a  {{header}}, {{content}}. The final slide should be a list of discussion questions. Return as JSON."
-)
+    topic_query = (
+        f"Generate a {n_slides} slide presentation for the topic. Produce {n_words_per_slide-5} to {n_words_per_slide+5} words per slide. "
+        + topic
+        + ". Each slide should have a  {{header}}, {{content}}. The final slide should be a list of discussion questions. Return as JSON."
+    )
 
-prompt = query_json.replace("[[QUERY]]", question)
-
-
-# send a message and immediately delete it
-token = sys.argv[1]
-
-poe.logger.setLevel(logging.INFO)
-client = poe.Client(token)
-
-with open(OUTPUT_CHATBOT, "w") as f:
-    for chunk in client.send_message("chinchilla", prompt, with_chat_break=True):
-        print(chunk["text_new"], end="", flush=True)
-        f.write(chunk["text_new"])
+    query = query.replace("[[QUERY]]", topic_query)
+    return query
 
 
-# delete the 3 latest messages, including the chat break
-client.purge_conversation("chinchilla", count=3)
-print(f"Results written to {OUTPUT_CHATBOT}")
+def query_from_API(query: str, token: str, output_path: str, bot_name="chinchilla"):
+    try:
+        poe.logger.setLevel(logging.INFO)
+        client = poe.Client(token)
+
+        with open(output_path, "w") as f:
+            for chunk in client.send_message(bot_name, query, with_chat_break=True):
+                print(chunk["text_new"], end="", flush=True)
+                f.write(chunk["text_new"])
+
+        # delete the 3 latest messages, including the chat break
+        client.purge_conversation(bot_name, count=3)
+    except:
+        return False
+
+    return True
