@@ -5,7 +5,7 @@ from PIL import Image
 import collections.abc
 from pptx.util import Inches
 from pptx import Presentation
-from api_key import API_KEY
+from api_key import POE_API_KEY
 
 from src.utils import *
 from src.image_download import Downloader
@@ -21,9 +21,9 @@ downloader = Downloader()
 print("############################# SLIGHT #############################")
 topic = input("What do you want to make a presentation about? \n >>> ")
 
-text_query = create_query(topic)
+text_query = create_query(topic, n_slides=10, n_words_per_slide=70)
 output_txt_path = os.path.join("data", topic.replace(" ", "_") + ".txt")
-success = query_from_API(query=text_query, token=API_KEY, output_path=output_txt_path)
+success = query_from_API(query=text_query, token=POE_API_KEY, output_path=output_txt_path)
 
 if success:
     print(f"Successfully generate content about {topic}")
@@ -51,7 +51,7 @@ for item in content_json[key]:
     header, content = process_header(item["header"]), item["content"]
     image_query = (header + topic).replace(" ", "_")
     image = None
-    if image_query != "Introduction":
+    if "Introduction" not in image_query:
         try:
             downloader.download(image_query, limit=20, timer=50)
             image_names = os.listdir(os.path.join("simple_images", image_query))
@@ -81,10 +81,13 @@ for item in content_json[key]:
         sp.getparent().remove(sp)
 
     if image:
-        picture = slide.shapes.add_picture(path_to_image, Inches(1), Inches(1))
-        # TODO: change picture size
+        w, h = image.size
+        if w > h:
+            picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), width=Inches(5))
+        else:
+            picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), height=Inches(5))
 
-    left, top, width, height = (Inches(1.5), Inches(1.5), Inches(6), Inches(6))
+    left, top, width, height = Inches(1), Inches(2.5), Inches(5), Inches(5)
     textbox = slide.shapes.add_textbox(left, top, width, height)
     text_frame = textbox.text_frame
     text_frame.text = content
