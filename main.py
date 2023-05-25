@@ -5,11 +5,12 @@ from PIL import Image
 import collections.abc
 from pptx.util import Inches
 from pptx import Presentation
-from api_key import POE_API_KEY
+from api_key import API_KEY
 
 from src.utils import *
 from src.image_download import Downloader
 from src.text_gen import *
+import re
 
 DATA_FOLDER = r"data"
 FONT_FOLDER = r"fonts"
@@ -19,14 +20,27 @@ CHOSEN_FONT = os.path.join(FONT_FOLDER, "Calibri Regular.ttf")
 downloader = Downloader()
 
 print("############################# SLIGHT #############################")
-topic = input("What do you want to make a presentation about? \n >>> ")
+input_mode = int(input("""Select how you want to create: 
+    1. Upload 1 docx document.
+    2. Enter a topic.
+    Your answer [1/2]: """))
+mode = {1: "document", 2: "topic"}
 
-text_query = create_query(topic, n_slides=10, n_words_per_slide=70)
-output_txt_path = os.path.join("data", topic.replace(" ", "_") + ".txt")
-success = query_from_API(query=text_query, token=POE_API_KEY, output_path=output_txt_path)
+if mode[input_mode] == "document":
+    # docu_file_tmp = "/home/thekhoi/WORKSPACE/Slides/slight-generation/data/Sample-Python Tutorial.docx"
+    docu_file = input("Enter the document(docx) path:\n >>> ")
+    text_query = create_query_read_document(docu_file=docu_file)
+    output_txt_path = os.path.join("data", re.sub(r'\.docx*$', '.txt', docu_file)) # .docx and .doc --> .txt
+else:
+    topic = input("What do you want to make a presentation about? \n >>> ")
+    text_query = create_query(topic)
+    output_txt_path = os.path.join("data", topic.replace(" ", "_") + ".txt")
+
+
+success = query_from_API(query=text_query, token=API_KEY, output_path=output_txt_path)
 
 if success:
-    print(f"Successfully generate content about {topic}")
+    print(f"Successfully generate content.")
 else:
     print("Cannot query from API. Please try again")
 
@@ -49,9 +63,13 @@ for i in range(len(prs.slides) - 1, -1, -1):
 key = list(content_json.keys())[0]
 for item in content_json[key]:
     header, content = process_header(item["header"]), item["content"]
+    try:
+        topic
+    except:
+        topic = " "
     image_query = (header + topic).replace(" ", "_")
     image = None
-    if "Introduction" not in image_query:
+    if image_query != "Introduction":
         try:
             downloader.download(image_query, limit=20, timer=50)
             image_names = os.listdir(os.path.join("simple_images", image_query))
@@ -81,13 +99,10 @@ for item in content_json[key]:
         sp.getparent().remove(sp)
 
     if image:
-        w, h = image.size
-        if w > h:
-            picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), width=Inches(5))
-        else:
-            picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), height=Inches(5))
+        picture = slide.shapes.add_picture(path_to_image, Inches(1), Inches(1))
+        # TODO: change picture size
 
-    left, top, width, height = Inches(1), Inches(2.5), Inches(5), Inches(5)
+    left, top, width, height = (Inches(1.5), Inches(1.5), Inches(6), Inches(6))
     textbox = slide.shapes.add_textbox(left, top, width, height)
     text_frame = textbox.text_frame
     text_frame.text = content

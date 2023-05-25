@@ -2,7 +2,7 @@ import poe
 import logging
 import re
 import json
-
+import pypandoc
 
 def create_content_json(reponse_file: str):
     def _create_content_from_json(response):
@@ -69,6 +69,37 @@ def create_query(topic: str, n_slides: int = 10, n_words_per_slide: int = 55):
         + ". Each slide should have a  {{header}}, {{content}}. The final slide should be a list of discussion questions. Return as JSON."
     )
 
+    query = query.replace("[[QUERY]]", topic_query)
+    return query
+
+
+def create_query_read_document(docu_file: str, n_slides: int = 10, n_words_per_slide: int = 55):
+    def _get_document(docu_file: str):
+        assert 'doc' in docu_file
+        docu_txt_file = docu_file.replace("docx", "txt")
+        output = pypandoc.convert_file(docu_file, 'plain', outputfile=docu_txt_file)
+        assert output == ""
+
+        with open(docu_txt_file, 'r') as f:
+            docu = f.read()
+            if len(docu.split()) > 500:
+                print("Warning: document input larger than 500 words, reduce it next time to have better performance.")
+        return docu
+    docu = _get_document(docu_file)
+
+    query = """"{
+    "input_text": "[[QUERY]]",
+    "output_format": "json",
+    "json_structure": {
+        "slides":"{{presentation_slides}}"
+       }
+    }"""
+    topic_query = (
+        f"Generate a {n_slides} slide presentation from the document provided. Produce {n_words_per_slide-5} to {n_words_per_slide+5} words per slide. "
+        + ". Each slide should have a  {{header}}, {{content}}. The first slide should only contain the short title. The final slide should be a list of discussion questions. Return as JSON, only JSON, not the code to generate JSON."
+        + " Here is the document: \n"
+        + docu
+    )
     query = query.replace("[[QUERY]]", topic_query)
     return query
 
