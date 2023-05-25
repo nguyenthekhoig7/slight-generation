@@ -75,7 +75,6 @@ def create_query(topic: str, n_slides: int = 10, n_words_per_slide: int = 55):
 
 def create_query_read_document(docu_file: str, n_slides: int = 10, n_words_per_slide: int = 55):
     def _get_document(docu_file: str):
-        assert 'doc' in docu_file
         docu_txt_file = docu_file.replace("docx", "txt")
         output = pypandoc.convert_file(docu_file, 'plain', outputfile=docu_txt_file)
         assert output == ""

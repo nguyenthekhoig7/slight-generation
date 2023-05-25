@@ -28,6 +28,11 @@ mode = {1: "document", 2: "topic"}
 
 if mode[input_mode] == "document":
     docu_file = input("Enter the document(docx) path:\n >>> ")
+    while True:
+        if '.doc' in docu_file:
+            break
+        print('Only accept .doc or .docx files. Please try again.')
+        docu_file = input("Enter the document(docx) path:\n >>> ")
     text_query = create_query_read_document(docu_file=docu_file)
     output_txt_path = os.path.join("data", re.sub(r'\.docx*$', '.txt', docu_file)) # .docx and .doc --> .txt
 
