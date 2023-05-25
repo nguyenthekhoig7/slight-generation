@@ -66,7 +66,7 @@ def create_query(topic: str, n_slides: int = 10, n_words_per_slide: int = 55):
     topic_query = (
         f"Generate a {n_slides} slide presentation for the topic. Produce {n_words_per_slide-5} to {n_words_per_slide+5} words per slide. "
         + topic
-        + ". Each slide should have a  {{header}}, {{content}}. The final slide should be a list of discussion questions. Return as JSON."
+        + ". Each slide should have a  {{header}}, {{content}}. The final slide should be a list of discussion questions. Return as JSON, only JSON, not the code to generate JSON."
     )
 
     query = query.replace("[[QUERY]]", topic_query)
