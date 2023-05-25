@@ -30,15 +30,22 @@ if mode[input_mode] == "document":
     docu_file = input("Enter the document(docx) path:\n >>> ")
     text_query = create_query_read_document(docu_file=docu_file)
     output_txt_path = os.path.join("data", re.sub(r'\.docx*$', '.txt', docu_file)) # .docx and .doc --> .txt
-else:
+
+    with open(output_txt_path, 'r') as f:
+        docu = f.read()
+    get_title_query = ("Summarize the following document into a short title. Your response should contain only a short title of less than 10 words, nothing other than that, a less-than-10-word title. Here is the document: \n"
+        + docu)
+    topic = query_from_API(query=get_title_query, token=API_KEY)
+
+else: # mode topic
     topic = input("What do you want to make a presentation about? \n >>> ")
     text_query = create_query(topic)
     output_txt_path = os.path.join("data", topic.replace(" ", "_") + ".txt")
 
-success = query_from_API(query=text_query, token=API_KEY, output_path=output_txt_path)
+success = query_API__save_to_file(query=text_query, token=API_KEY, output_path=output_txt_path)
 
 if success:
-    print(f"Successfully generate content.")
+    print(f"Successfully generate content about {topic}.")
 else:
     print("Cannot query from API. Please try again")
 
@@ -61,10 +68,6 @@ for i in range(len(prs.slides) - 1, -1, -1):
 key = list(content_json.keys())[0]
 for item in content_json[key]:
     header, content = process_header(item["header"]), item["content"]
-    try:
-        topic
-    except:
-        topic = " "
     image_query = (header + topic).replace(" ", "_")
     image = None
     if image_query != "Introduction":

@@ -104,19 +104,28 @@ def create_query_read_document(docu_file: str, n_slides: int = 10, n_words_per_s
     return query
 
 
-def query_from_API(query: str, token: str, output_path: str, bot_name="chinchilla"):
+def query_from_API(query: str, token: str, bot_name="chinchilla"):
     try:
         poe.logger.setLevel(logging.INFO)
         client = poe.Client(token)
 
-        with open(output_path, "w") as f:
-            for chunk in client.send_message(bot_name, query, with_chat_break=True):
-                print(chunk["text_new"], end="", flush=True)
-                f.write(chunk["text_new"])
+        response = ""
+        for chunk in client.send_message(bot_name, query, with_chat_break=True):
+                word = chunk["text_new"]
+                print(word, end="", flush=True)
+                response += word
 
         # delete the 3 latest messages, including the chat break
         client.purge_conversation(bot_name, count=3)
     except:
-        return False
+        return None
+    return response
 
+def query_API__save_to_file(query: str, token: str, output_path: str, bot_name="chinchilla"):
+    try:
+        response = query_from_API(query, token, bot_name)
+        with open(output_path, "w") as f:
+            f.write(response)
+    except:
+        return False
     return True
