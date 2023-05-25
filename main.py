@@ -46,7 +46,7 @@ if mode[input_mode] == "document":
         "Summarize the following document into a short title. Your response should contain only a short title of less than 10 words, nothing other than that, a less-than-10-word title. Here is the document: \n"
         + docu
     )
-    topic = query_from_API(query=get_title_query, token=API_KEY)
+    topic = query_from_API(query=get_title_query, token=POE_API_KEY)
 
 else:  # mode topic
     topic = input("What do you want to make a presentation about? \n >>> ")
