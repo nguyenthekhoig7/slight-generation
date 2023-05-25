@@ -27,7 +27,6 @@ input_mode = int(input("""Select how you want to create:
 mode = {1: "document", 2: "topic"}
 
 if mode[input_mode] == "document":
-    # docu_file_tmp = "/home/thekhoi/WORKSPACE/Slides/slight-generation/data/Sample-Python Tutorial.docx"
     docu_file = input("Enter the document(docx) path:\n >>> ")
     text_query = create_query_read_document(docu_file=docu_file)
     output_txt_path = os.path.join("data", re.sub(r'\.docx*$', '.txt', docu_file)) # .docx and .doc --> .txt
@@ -35,7 +34,6 @@ else:
     topic = input("What do you want to make a presentation about? \n >>> ")
     text_query = create_query(topic)
     output_txt_path = os.path.join("data", topic.replace(" ", "_") + ".txt")
-
 
 success = query_from_API(query=text_query, token=API_KEY, output_path=output_txt_path)
 
