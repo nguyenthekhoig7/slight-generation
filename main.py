@@ -20,29 +20,35 @@ CHOSEN_FONT = os.path.join(FONT_FOLDER, "Calibri Regular.ttf")
 downloader = Downloader()
 
 print("############################# SLIGHT #############################")
-input_mode = int(input("""Select how you want to create: 
+input_mode = int(
+    input(
+        """Select how you want to create: 
     1. Upload 1 docx document.
     2. Enter a topic.
-    Your answer [1/2]: """))
+    Your answer [1/2]: """
+    )
+)
 mode = {1: "document", 2: "topic"}
 
 if mode[input_mode] == "document":
     docu_file = input("Enter the document(docx) path:\n >>> ")
     while True:
-        if '.doc' in docu_file:
+        if ".doc" in docu_file:
             break
-        print('Only accept .doc or .docx files. Please try again.')
+        print("Only accept .doc or .docx files. Please try again.")
         docu_file = input("Enter the document(docx) path:\n >>> ")
     text_query = create_query_read_document(docu_file=docu_file)
-    output_txt_path = os.path.join("data", re.sub(r'\.docx*$', '.txt', docu_file)) # .docx and .doc --> .txt
+    output_txt_path = os.path.join("data", re.sub(r"\.docx*$", ".txt", docu_file))  # .docx and .doc --> .txt
 
-    with open(output_txt_path, 'r') as f:
+    with open(output_txt_path, "r") as f:
         docu = f.read()
-    get_title_query = ("Summarize the following document into a short title. Your response should contain only a short title of less than 10 words, nothing other than that, a less-than-10-word title. Here is the document: \n"
-        + docu)
+    get_title_query = (
+        "Summarize the following document into a short title. Your response should contain only a short title of less than 10 words, nothing other than that, a less-than-10-word title. Here is the document: \n"
+        + docu
+    )
     topic = query_from_API(query=get_title_query, token=API_KEY)
 
-else: # mode topic
+else:  # mode topic
     topic = input("What do you want to make a presentation about? \n >>> ")
     text_query = create_query(topic)
     output_txt_path = os.path.join("data", topic.replace(" ", "_") + ".txt")
@@ -105,8 +111,11 @@ for item in content_json[key]:
         sp.getparent().remove(sp)
 
     if image:
-        picture = slide.shapes.add_picture(path_to_image, Inches(1), Inches(1))
-        # TODO: change picture size
+        w, h = image.size
+        if w > h:
+            picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), width=Inches(5))
+        else:
+            picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), height=Inches(5))
 
     left, top, width, height = (Inches(1.5), Inches(1.5), Inches(6), Inches(6))
     textbox = slide.shapes.add_textbox(left, top, width, height)
