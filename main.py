@@ -53,7 +53,7 @@ else:  # mode topic
     text_query = create_query(topic, n_slides=10, n_words_per_slide=70)
     output_txt_path = os.path.join("data", topic.replace(" ", "_") + ".txt")
 
-success = query_from_API(query=text_query, token=POE_API_KEY, output_path=output_txt_path)
+success = query_API__save_to_file(query=text_query, token=POE_API_KEY, output_path=output_txt_path)
 
 if success:
     print(f"Successfully generate content about {topic}.")
