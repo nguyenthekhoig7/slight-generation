@@ -113,7 +113,7 @@ for item in content_json[key]:
     if image:
         w, h = image.size
         if w > h:
-            picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), width=Inches(5))
+            picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), width=Inches(3.8))
         else:
             picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), height=Inches(5))
 
