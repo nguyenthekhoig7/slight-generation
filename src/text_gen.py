@@ -3,6 +3,7 @@ import logging
 import re
 import json
 import pypandoc
+import pdfplumber
 
 def create_content_json(reponse_file: str):
     def _create_content_from_json(response):
@@ -75,16 +76,31 @@ def create_query(topic: str, n_slides: int = 10, n_words_per_slide: int = 55):
 
 def create_query_read_document(docu_file: str, n_slides: int = 10, n_words_per_slide: int = 55):
     def _get_document(docu_file: str):
-        docu_txt_file = docu_file.replace("docx", "txt")
-        output = pypandoc.convert_file(docu_file, 'plain', outputfile=docu_txt_file)
-        assert output == ""
+        docu_txt_file = re.sub(r"\.[a-zA-Z0-9]+$", ".txt", docu_file)
+        if '.doc' in docu_file:
+            output = pypandoc.convert_file(docu_file, 'plain', outputfile=docu_txt_file)
+            assert output == ""
 
-        with open(docu_txt_file, 'r') as f:
-            docu = f.read()
-            if len(docu.split()) > 500:
-                print("Warning: document input larger than 500 words, reduce it next time to have better performance.")
-        return docu
-    docu = _get_document(docu_file)
+            with open(docu_txt_file, 'r') as f:
+                docu = f.read()
+                if len(docu.split()) > 500:
+                    print("Warning: document input larger than 500 words, reduce it next time to have better performance.")
+            return (docu, docu_txt_file)
+        else: # pdf
+            try:
+                print('docufile: ', docu_file)
+                pdf = pdfplumber.open(docu_file)
+            except:
+                pdf = None
+                print('Cannot open pdf file')
+                exit()
+            content = ''
+            for page in pdf.pages:
+                content += page.extract_text()
+            with open(docu_txt_file, 'w') as f:
+                f.write(content)
+            return (content, docu_txt_file)
+    docu, docu_txt_file = _get_document(docu_file)
 
     query = """"{
     "input_text": "[[QUERY]]",
@@ -100,7 +116,7 @@ def create_query_read_document(docu_file: str, n_slides: int = 10, n_words_per_s
         + docu
     )
     query = query.replace("[[QUERY]]", topic_query)
-    return query
+    return (query, docu_txt_file)
 
 
 def query_from_API(query: str, token: str, bot_name="chinchilla"):

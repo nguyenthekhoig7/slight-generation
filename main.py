@@ -31,14 +31,14 @@ input_mode = int(
 mode = {1: "document", 2: "topic"}
 
 if mode[input_mode] == "document":
-    docu_file = input("Enter the document(docx) path:\n >>> ")
+    docu_file = input("Enter the document(docx/pdf) path:\n >>> ")
     while True:
-        if ".doc" in docu_file:
+        if ".doc" in docu_file or '.pdf' in docu_file:
             break
         print("Only accept .doc or .docx files. Please try again.")
-        docu_file = input("Enter the document(docx) path:\n >>> ")
-    text_query = create_query_read_document(docu_file=docu_file)
-    output_txt_path = os.path.join("data", re.sub(r"\.docx*$", ".txt", docu_file))  # .docx and .doc --> .txt
+        docu_file = input("Enter the document(docx/pdf) path:\n >>> ")
+    text_query, output_txt_path = create_query_read_document(docu_file=docu_file)
+    # output_txt_path = os.path.join("data", re.sub(r"\.[a-zA-Z0-9]+$", ".txt", docu_file))  # .docx and .doc --> .txt
 
     with open(output_txt_path, "r") as f:
         docu = f.read()
@@ -75,8 +75,11 @@ for i in range(len(prs.slides) - 1, -1, -1):
     rId = prs.slides._sldIdLst[i].rId
     prs.part.drop_rel(rId)
     del prs.slides._sldIdLst[i]
-
-key = list(content_json.keys())[0]
+try:
+    key = list(content_json.keys())[0]
+except:
+    key = None
+    print('`content_json` is empty.')
 for item in content_json[key]:
     header, content = process_header(item["header"]), item["content"]
     image_query = (header + topic).replace(" ", "_")
@@ -105,7 +108,7 @@ for item in content_json[key]:
     title.text = header
 
     for i, place_holder in enumerate(slide.placeholders):
-        if i < 2:
+        if i < 1:
             continue
         sp = place_holder.element
         sp.getparent().remove(sp)
