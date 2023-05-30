@@ -24,7 +24,7 @@ def change_name_if_duplicated(init_name):
     if os.path.exists(init_name):
         i = 1
         while True:
-            print('name exists, making newname...')
+            # print('name exists, making newname...')
             if i > 1:
                 init_name = re.sub(r'\((\d+)\)', 
                                    lambda match: '(' + str(int(match.group(1))+1) + ')', 
@@ -33,7 +33,7 @@ def change_name_if_duplicated(init_name):
                 try:
                     init_name = init_name.replace(".pptx", f"({i}).pptx")
                 except:
-                    print('cannot replace')
+                    print('Cannot change name')
                     return None
 
             if not os.path.exists(init_name):
