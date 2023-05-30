@@ -5,7 +5,7 @@ import json
 import pypandoc
 import pdfplumber
 
-def create_content_json(reponse_file: str):
+def create_content_json(response: str):
     def _create_content_from_json(response):
         match = re.search(r"{(.*?)]\n}", response, re.DOTALL)
         if match: # response has json inside
@@ -45,9 +45,6 @@ def create_content_json(reponse_file: str):
 
         return slides_json
 
-    with open(reponse_file, "r") as f:
-        response = f.read()
-        
     content_json = _create_content_from_json(response)
     if content_json is None:
         content_json = _create_content_from_python_code(response)
@@ -144,3 +141,8 @@ def query_API__save_to_file(query: str, token: str, output_path: str, bot_name="
     except:
         return False
     return True
+
+def read_response_file(response_file: str):
+    with open(response_file, 'r') as f:
+        content = f.read()
+    return content

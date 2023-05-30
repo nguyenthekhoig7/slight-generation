@@ -11,6 +11,7 @@ from src.utils import *
 from src.image_download import Downloader
 from src.text_gen import *
 import re
+import time
 
 DATA_FOLDER = r"data"
 FONT_FOLDER = r"fonts"
@@ -53,6 +54,7 @@ else:  # mode topic
     text_query = create_query(topic, n_slides=10, n_words_per_slide=70)
     output_txt_path = os.path.join("data", topic.replace(" ", "_") + ".txt")
 
+st_time = time.time()
 success = query_API__save_to_file(query=text_query, token=POE_API_KEY, output_path=output_txt_path)
 
 if success:
@@ -60,9 +62,12 @@ if success:
 else:
     print("Cannot query from API. Please try again")
 
-content_json = create_content_json(output_txt_path)
+response = read_response_file(output_txt_path)
+content_json = create_content_json(response)
+
 if content_json is None:
-    print("Cannot extract json from text. Please try again !!!")
+    print("Cannot extract json from text. Cannot create a presentation. Stopped.")
+    exit()
 
 try:
     prs = Presentation(TEMPLATE_PPTX)
@@ -75,11 +80,9 @@ for i in range(len(prs.slides) - 1, -1, -1):
     rId = prs.slides._sldIdLst[i].rId
     prs.part.drop_rel(rId)
     del prs.slides._sldIdLst[i]
-try:
-    key = list(content_json.keys())[0]
-except:
-    key = None
-    print('`content_json` is empty.')
+
+key = list(content_json.keys())[0]
+
 for item in content_json[key]:
     header, content = process_header(item["header"]), item["content"]
     image_query = (header + topic).replace(" ", "_")
@@ -115,11 +118,13 @@ for item in content_json[key]:
 
     if image:
         w, h = image.size
-        if w > h:
-            picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), width=Inches(3.8))
-        else:
-            picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), height=Inches(5))
-
+        try:
+            if w > h:
+                    picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), width=Inches(3.8))
+            else:
+                picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), height=Inches(5))
+        except Exception as e:
+            print('Cannot add picture. ', e)
     left, top, width, height = Inches(1), Inches(2.5), Inches(5), Inches(5)
     textbox = slide.shapes.add_textbox(left, top, width, height)
     text_frame = textbox.text_frame
@@ -129,3 +134,9 @@ for item in content_json[key]:
 
 output_pptx_path = output_txt_path.replace("txt", "pptx")
 prs.save(output_pptx_path)
+print(f'Presentation saved to {output_pptx_path}')
+
+end_time = time.time()
+
+duration = end_time - st_time
+print(f'time consumed: %.dm%ds' % (duration/60, duration%60))
