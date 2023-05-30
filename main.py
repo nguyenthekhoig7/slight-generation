@@ -133,6 +133,7 @@ for item in content_json[key]:
     text_frame.word_wrap = True
 
 output_pptx_path = output_txt_path.replace("txt", "pptx")
+output_pptx_path = change_name_if_duplicated(output_pptx_path)
 prs.save(output_pptx_path)
 print(f'Presentation saved to {output_pptx_path}')
 
