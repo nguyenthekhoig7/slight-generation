@@ -37,8 +37,7 @@ def change_name_if_duplicated(init_name):
                     return None
 
             if not os.path.exists(init_name):
-                new_name = init_name
                 break
             i += 1
-    
+    new_name = init_name
     return new_name
