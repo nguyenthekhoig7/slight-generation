@@ -55,14 +55,12 @@ else:  # mode topic
     output_txt_path = os.path.join("data", topic.replace(" ", "_") + ".txt")
 
 st_time = time.time()
-success = query_API__save_to_file(query=text_query, token=POE_API_KEY, output_path=output_txt_path)
+response = query_from_API(query=text_query, token=POE_API_KEY)
 
-if success:
-    print(f"Successfully generate content about {topic}.")
-else:
-    print("Cannot query from API. Please try again")
+if not response:    
+    print('Did not receive anything from API. Stop generating.')
+    exit()
 
-response = read_response_file(output_txt_path)
 content_json = create_content_json(response)
 
 if content_json is None:

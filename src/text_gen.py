@@ -133,16 +133,3 @@ def query_from_API(query: str, token: str, bot_name="chinchilla"):
         return None
     return response
 
-def query_API__save_to_file(query: str, token: str, output_path: str, bot_name="chinchilla"):
-    try:
-        response = query_from_API(query, token, bot_name)
-        with open(output_path, "w") as f:
-            f.write(response)
-    except:
-        return False
-    return True
-
-def read_response_file(response_file: str):
-    with open(response_file, 'r') as f:
-        content = f.read()
-    return content
