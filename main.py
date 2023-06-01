@@ -69,10 +69,20 @@ if content_json is None:
     exit()
 
 try:
+    default_16_9_slide_size = (Inches(5.625), Inches(10))
     prs = Presentation(TEMPLATE_PPTX)
-    print(f"Use template from {TEMPLATE_PPTX}")
+    # if (prs.slide_width / prs.slide_height) == 16/9:
+    if not (prs.slide_height == default_16_9_slide_size[0]*914400 
+            and prs.slide_width == default_16_9_slide_size[1]*914400):
+        print(f"Use template from {TEMPLATE_PPTX}")
+    else:
+        prs = Presentation()
+        prs.slide_height, prs.slide_width  = default_16_9_slide_size
+        print("Template is not of 16:9 ratio, creating from blank template.")
+
 except:
     prs = Presentation()
+    prs.slide_height, prs.slide_width  = default_16_9_slide_size
     print(f"Cannot use template from {TEMPLATE_PPTX}. Creating a blank file.")
 
 for i in range(len(prs.slides) - 1, -1, -1):
@@ -85,9 +95,12 @@ key = list(content_json.keys())[0]
 if not os.path.isdir(IMAGE_FOLDER):
     os.makedirs(IMAGE_FOLDER)
 
+img_slot = {'left': Inches(6), 'top': Inches(2), 'width': Inches(3.6), 'height': Inches(3.2)}
+img_slot_ratio = img_slot['width'] / img_slot['height']
+
 for item in content_json[key]:
     header, content = process_header(item["header"]), item["content"]
-    image_query = (header + topic).replace(" ", "_")
+    image_query = (header + "_" + topic).replace(" ", "_")
     image = None
     if "Introduction" not in image_query:
         try:
@@ -121,14 +134,14 @@ for item in content_json[key]:
     if image:
         w, h = image.size
         try:
-            if w > h:
-                picture = slide.shapes.add_picture(image_path, Inches(6), Inches(2.5), width=Inches(3.8))
+            if w/h > img_slot_ratio: # image longer than slot -> resize image to fit slot_width
+                picture = slide.shapes.add_picture(image_path, img_slot['left'], img_slot['top'], width=img_slot['width'])
             else:
-                picture = slide.shapes.add_picture(image_path, Inches(6), Inches(2.5), height=Inches(5))
+                picture = slide.shapes.add_picture(image_path, img_slot['left'], img_slot['top'], height=img_slot['height'])
         except Exception as e:
             print("Cannot add picture. ", e)
 
-    left, top, width, height = Inches(1), Inches(2.5), Inches(5), Inches(5)
+    left, top, width, height = Inches(1), Inches(1.5), Inches(5), Inches(5)
     textbox = slide.shapes.add_textbox(left, top, width, height)
     text_frame = textbox.text_frame
     text_frame.text = content
