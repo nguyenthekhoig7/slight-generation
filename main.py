@@ -6,19 +6,21 @@ import collections.abc
 from pptx.util import Inches
 from pptx import Presentation
 from api_key import POE_API_KEY
-
+from pathlib import Path
 from src.utils import *
-from src.image_download import Downloader
+import glob
+
+# from src.image_download import Downloader
+from bing_image_downloader import downloader
 from src.text_gen import *
 import re
 import time
 
-DATA_FOLDER = r"data"
-FONT_FOLDER = r"fonts"
+DATA_FOLDER = r".\data"
+FONT_FOLDER = r".\fonts"
+IMAGE_FOLDER = r"images"
 TEMPLATE_PPTX = os.path.join(DATA_FOLDER, "template.pptx")
 CHOSEN_FONT = os.path.join(FONT_FOLDER, "Calibri Regular.ttf")
-
-downloader = Downloader()
 
 print("############################# SLIGHT #############################")
 input_mode = int(
@@ -34,12 +36,11 @@ mode = {1: "document", 2: "topic"}
 if mode[input_mode] == "document":
     docu_file = input("Enter the document(docx/pdf) path:\n >>> ")
     while True:
-        if ".doc" in docu_file or '.pdf' in docu_file:
+        if ".doc" in docu_file or ".pdf" in docu_file:
             break
         print("Only accept .doc or .docx files. Please try again.")
         docu_file = input("Enter the document(docx/pdf) path:\n >>> ")
     text_query, output_txt_path = create_query_read_document(docu_file=docu_file)
-    # output_txt_path = os.path.join("data", re.sub(r"\.[a-zA-Z0-9]+$", ".txt", docu_file))  # .docx and .doc --> .txt
 
     with open(output_txt_path, "r") as f:
         docu = f.read()
@@ -57,8 +58,8 @@ else:  # mode topic
 st_time = time.time()
 response = query_from_API(query=text_query, token=POE_API_KEY)
 
-if not response:    
-    print('Did not receive anything from API. Stop generating.')
+if not response:
+    print("Did not receive anything from API. Stop generating.")
     exit()
 
 content_json = create_content_json(response)
@@ -81,26 +82,29 @@ for i in range(len(prs.slides) - 1, -1, -1):
 
 key = list(content_json.keys())[0]
 
+if not os.path.isdir(IMAGE_FOLDER):
+    os.makedirs(IMAGE_FOLDER)
+
 for item in content_json[key]:
     header, content = process_header(item["header"]), item["content"]
     image_query = (header + topic).replace(" ", "_")
     image = None
     if "Introduction" not in image_query:
         try:
-            downloader.download(image_query, limit=20, timer=50)
-            image_names = os.listdir(os.path.join("simple_images", image_query))
-            while True:
-                path_to_image = os.path.join(
-                    "simple_images",
-                    image_query,
-                    image_names[random.randint(0, len(image_names) - 1)],
-                )
-                image = Image.open(path_to_image)
-                if image.size != (80, 36) and check_valid_image(path_to_image):
-                    break
-            downloader.flush_cache()
-        except:
-            print("Cannot download image")
+            downloader.download(
+                image_query,
+                limit=1,
+                output_dir=r".\images",
+                force_replace=False,
+                timeout=10,
+                verbose=False,
+            )
+
+            image_folder_path = os.path.join(IMAGE_FOLDER, image_query)
+            image_path = os.path.join(image_folder_path, os.listdir(image_folder_path)[0])
+            image = Image.open(image_path)
+        except Exception as e:
+            print(e)
 
     slide_layout = prs.slide_layouts[3]
     slide = prs.slides.add_slide(slide_layout)
@@ -118,11 +122,14 @@ for item in content_json[key]:
         w, h = image.size
         try:
             if w > h:
-                    picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), width=Inches(3.8))
+                picture = slide.shapes.add_picture(image_path, Inches(6), Inches(2.5), width=Inches(3.8))
+                print("Thiss")
             else:
-                picture = slide.shapes.add_picture(path_to_image, Inches(6), Inches(2.5), height=Inches(5))
+                picture = slide.shapes.add_picture(image_path, Inches(6), Inches(2.5), height=Inches(5))
+                print("That")
         except Exception as e:
-            print('Cannot add picture. ', e)
+            print("Cannot add picture. ", e)
+
     left, top, width, height = Inches(1), Inches(2.5), Inches(5), Inches(5)
     textbox = slide.shapes.add_textbox(left, top, width, height)
     text_frame = textbox.text_frame
@@ -131,11 +138,11 @@ for item in content_json[key]:
     text_frame.word_wrap = True
 
 output_pptx_path = output_txt_path.replace("txt", "pptx")
-output_pptx_path = change_name_if_duplicated(output_pptx_path)
+# output_pptx_path = change_name_if_duplicated(output_pptx_path)
 prs.save(output_pptx_path)
-print(f'Presentation saved to {output_pptx_path}')
+print(f"Presentation saved to {output_pptx_path}")
 
 end_time = time.time()
 
 duration = end_time - st_time
-print(f'time consumed: %.dm%ds' % (duration/60, duration%60))
+print(f"time consumed: %.dm%ds" % (duration / 60, duration % 60))

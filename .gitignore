@@ -1,6 +1,6 @@
 api_key.py
 .vscode
-simple_images
+images
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

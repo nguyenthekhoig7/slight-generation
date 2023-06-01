@@ -34,3 +34,4 @@ Wand==0.6.11
 websocket-client==1.5.1
 XlsxWriter==3.1.0
 yarl==1.9.2
+bing-image-downloader
