@@ -16,9 +16,9 @@ from src.text_gen import *
 import re
 import time
 
-DATA_FOLDER = r".\data"
-FONT_FOLDER = r".\fonts"
-IMAGE_FOLDER = r"images"
+DATA_FOLDER = r"data"
+FONT_FOLDER = r"fonts"
+IMAGE_FOLDER = os.path.join(r"images")
 TEMPLATE_PPTX = os.path.join(DATA_FOLDER, "template.pptx")
 CHOSEN_FONT = os.path.join(FONT_FOLDER, "Calibri Regular.ttf")
 
@@ -94,7 +94,7 @@ for item in content_json[key]:
             downloader.download(
                 image_query,
                 limit=1,
-                output_dir=r".\images",
+                output_dir=IMAGE_FOLDER,
                 force_replace=False,
                 timeout=10,
                 verbose=False,
@@ -123,10 +123,8 @@ for item in content_json[key]:
         try:
             if w > h:
                 picture = slide.shapes.add_picture(image_path, Inches(6), Inches(2.5), width=Inches(3.8))
-                print("Thiss")
             else:
                 picture = slide.shapes.add_picture(image_path, Inches(6), Inches(2.5), height=Inches(5))
-                print("That")
         except Exception as e:
             print("Cannot add picture. ", e)
 
@@ -138,7 +136,7 @@ for item in content_json[key]:
     text_frame.word_wrap = True
 
 output_pptx_path = output_txt_path.replace("txt", "pptx")
-# output_pptx_path = change_name_if_duplicated(output_pptx_path)
+output_pptx_path = change_name_if_duplicated(output_pptx_path)
 prs.save(output_pptx_path)
 print(f"Presentation saved to {output_pptx_path}")
 
