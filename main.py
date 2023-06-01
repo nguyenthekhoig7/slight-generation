@@ -40,7 +40,7 @@ if mode[input_mode] == "document":
             break
         print("Only accept .doc or .docx files. Please try again.")
         docu_file = input("Enter the document(docx/pdf) path:\n >>> ")
-    text_query, output_txt_path = create_query_read_document(docu_file=docu_file)
+    text_query, output_txt_path = create_query_read_document(docu_file=docu_file, n_words_per_slide=50)
 
     with open(output_txt_path, "r") as f:
         docu = f.read()
@@ -52,7 +52,7 @@ if mode[input_mode] == "document":
 
 else:  # mode topic
     topic = input("What do you want to make a presentation about? \n >>> ")
-    text_query = create_query(topic, n_slides=10, n_words_per_slide=70)
+    text_query = create_query(topic, n_slides=10, n_words_per_slide=50)
     output_txt_path = os.path.join("data", topic.replace(" ", "_") + ".txt")
 
 st_time = time.time()
@@ -95,7 +95,7 @@ key = list(content_json.keys())[0]
 if not os.path.isdir(IMAGE_FOLDER):
     os.makedirs(IMAGE_FOLDER)
 
-img_slot = {'left': Inches(6), 'top': Inches(2), 'width': Inches(3.6), 'height': Inches(3.2)}
+img_slot = {'left': Inches(6), 'top': Inches(1.6), 'width': Inches(3.6), 'height': Inches(3.6)}
 img_slot_ratio = img_slot['width'] / img_slot['height']
 
 for item in content_json[key]:
