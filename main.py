@@ -84,6 +84,8 @@ except:
     prs = Presentation()
     prs.slide_height, prs.slide_width  = default_16_9_slide_size
     print(f"Cannot use template from {TEMPLATE_PPTX}. Creating a blank file.")
+    
+layout_id = get_layout_id(prs)
 
 for i in range(len(prs.slides) - 1, -1, -1):
     rId = prs.slides._sldIdLst[i].rId
