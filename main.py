@@ -84,7 +84,7 @@ except:
     prs = Presentation()
     prs.slide_height, prs.slide_width  = default_16_9_slide_size
     print(f"Cannot use template from {TEMPLATE_PPTX}. Creating a blank file.")
-    
+
 layout_id = get_layout_id(prs)
 
 for i in range(len(prs.slides) - 1, -1, -1):
@@ -121,7 +121,7 @@ for item in content_json[key]:
         except Exception as e:
             print(e)
 
-    slide_layout = prs.slide_layouts[3]
+    slide_layout = prs.slide_layouts[layout_id]
     slide = prs.slides.add_slide(slide_layout)
 
     title = slide.shapes.title
