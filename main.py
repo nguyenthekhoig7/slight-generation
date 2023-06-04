@@ -68,17 +68,16 @@ if content_json is None:
 try:
     default_16_9_slide_size = (Inches(5.625), Inches(10))
     prs = Presentation(TEMPLATE_PPTX)
-    if not (prs.slide_height == default_16_9_slide_size[0]*914400 
-            and prs.slide_width == default_16_9_slide_size[1]*914400):
+    if not (prs.slide_height == default_16_9_slide_size[0] * 914400 and prs.slide_width == default_16_9_slide_size[1] * 914400):
         print(f"Use template from {TEMPLATE_PPTX}")
     else:
         prs = Presentation()
-        prs.slide_height, prs.slide_width  = default_16_9_slide_size
+        prs.slide_height, prs.slide_width = default_16_9_slide_size
         print("Template is not of 16:9 ratio, creating from blank template.")
 
 except:
     prs = Presentation()
-    prs.slide_height, prs.slide_width  = default_16_9_slide_size
+    prs.slide_height, prs.slide_width = default_16_9_slide_size
     print(f"Cannot use template from {TEMPLATE_PPTX}. Creating a blank file.")
 
 layout_id = get_layout_id(prs)
@@ -93,7 +92,7 @@ for i in range(len(prs.slides) - 1, -1, -1):
 title = topic
 slide_title = prs.slides.add_slide(prs.slide_layouts[0])
 title_box = slide_title.shapes.title
-title_box.text =  title.capitalize()
+title_box.text = title.capitalize()
 for i, place_holder in enumerate(slide_title.placeholders):
     if i < 1:
         continue
@@ -105,8 +104,8 @@ key = list(content_json.keys())[0]
 if not os.path.isdir(IMAGE_FOLDER):
     os.makedirs(IMAGE_FOLDER)
 
-img_slot = {'left': Inches(6), 'top': Inches(1.6), 'width': Inches(3.6), 'height': Inches(3.6)}
-img_slot_ratio = img_slot['width'] / img_slot['height']
+img_slot = {"left": Inches(6), "top": Inches(1.6), "width": Inches(3.6), "height": Inches(3.6)}
+img_slot_ratio = img_slot["width"] / img_slot["height"]
 
 for item in content_json[key]:
     header, content = process_header(item["header"]), item["content"]
@@ -144,10 +143,10 @@ for item in content_json[key]:
     if image:
         w, h = image.size
         try:
-            if w/h > img_slot_ratio: # image longer than slot -> resize image to fit slot_width
-                picture = slide.shapes.add_picture(image_path, img_slot['left'], img_slot['top'], width=img_slot['width'])
+            if w / h > img_slot_ratio:  # image longer than slot -> resize image to fit slot_width
+                picture = slide.shapes.add_picture(image_path, img_slot["left"], img_slot["top"], width=img_slot["width"])
             else:
-                picture = slide.shapes.add_picture(image_path, img_slot['left'], img_slot['top'], height=img_slot['height'])
+                picture = slide.shapes.add_picture(image_path, img_slot["left"], img_slot["top"], height=img_slot["height"])
         except Exception as e:
             print("Cannot add picture. ", e)
 
