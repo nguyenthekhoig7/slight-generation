@@ -1,6 +1,7 @@
 import os
 from PIL import Image
 import collections.abc
+from typing import Optional
 from fastapi import FastAPI
 from pptx.util import Inches
 from pptx import Presentation
@@ -20,8 +21,8 @@ CHOSEN_FONT = os.path.join(FONT_FOLDER, "Calibri Regular.ttf")
 app = FastAPI()
 
 
-@app.get("/generate/")
-async def generate(topic: str, n_slides: int = 10, n_words_per_slide: int = 70):
+@app.post("/generate/")
+async def generate(topic: str, n_slides: Optional[int] = 10, n_words_per_slide: Optional[int] = 70):
     text_query = create_query(topic, n_slides=n_slides, n_words_per_slide=n_words_per_slide)
     response = query_from_API(query=text_query, token=POE_API_KEY)
     content_json = create_content_json(response)

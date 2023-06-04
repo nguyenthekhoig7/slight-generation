@@ -7,6 +7,11 @@ import pdfplumber
 
 
 def create_content_json(response: str):
+    """
+    This function gets the response from Poe API and
+    return the json content from the response
+    """
+
     def _create_content_from_json(response):
         match = re.search(r"{(.*?)]\n}", response, re.DOTALL)
         if match:  # response has json inside
@@ -54,7 +59,14 @@ def create_content_json(response: str):
     return content_json
 
 
-def create_query(topic: str, n_slides: int = 10, n_words_per_slide: int = 55):
+def create_query_from_text(text: str, type_of_text, n_slides: int = 10, n_words_per_slide: int = 55):
+    if type_of_text == "doc":
+        return create_query_from_document(document_content=text, n_slides=n_slides, n_words_per_slide=n_words_per_slide)
+    else:
+        return create_query_from_topic(topic=text, n_slides=n_slides, n_words_per_slide=n_words_per_slide)
+
+
+def create_query_from_topic(topic: str, n_slides: int = 10, n_words_per_slide: int = 55):
     query = """{
     "input_text": "[[QUERY]]",
     "output_format": "json",
@@ -69,6 +81,24 @@ def create_query(topic: str, n_slides: int = 10, n_words_per_slide: int = 55):
         + ". Each slide should have a  {{header}}, {{content}}. The final slide should be a list of discussion questions. Return as JSON, only JSON, not the code to generate JSON."
     )
 
+    query = query.replace("[[QUERY]]", topic_query)
+    return query
+
+
+def create_query_from_document(document_content: str, n_slides: int = 10, n_words_per_slide: int = 55):
+    query = """{
+    "input_text": "[[QUERY]]",
+    "output_format": "json",
+    "json_structure": {
+        "slides":"{{presentation_slides}}"
+       }
+    }"""
+    topic_query = (
+        f"Generate a {n_slides} slide presentation from the document provided. Produce {n_words_per_slide-5} to {n_words_per_slide+5} words per slide. "
+        + ". Each slide should have a  {{header}}, {{content}}. The first slide should only contain the short title. The final slide should be a list of discussion questions. Return as JSON, only JSON, not the code to generate JSON."
+        + " Here is the document: \n"
+        + document_content
+    )
     query = query.replace("[[QUERY]]", topic_query)
     return query
 
@@ -152,6 +182,7 @@ def read_response_file(response_file: str):
     with open(response_file, "r") as f:
         content = f.read()
     return content
+
 
 def create_query_get_title(document):
     get_title_query = (

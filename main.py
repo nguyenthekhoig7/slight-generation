@@ -49,7 +49,7 @@ if mode[input_mode] == "document":
 
 else:  # mode topic
     topic = input("What do you want to make a presentation about? \n >>> ")
-    text_query = create_query(topic, n_slides=10, n_words_per_slide=50)
+    text_query = create_query_from_topic(topic, n_slides=10, n_words_per_slide=50)
     output_txt_path = os.path.join("data", topic.replace(" ", "_") + ".txt")
 
 st_time = time.time()
