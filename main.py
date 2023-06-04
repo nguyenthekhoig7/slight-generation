@@ -44,10 +44,7 @@ if mode[input_mode] == "document":
 
     with open(output_txt_path, "r") as f:
         docu = f.read()
-    get_title_query = (
-        "Summarize the following document into a short title. Your response should contain only a short title of less than 10 words, nothing other than that, a less-than-10-word title. Here is the document: \n"
-        + docu
-    )
+    get_title_query = create_query_get_title(docu)
     topic = query_from_API(query=get_title_query, token=POE_API_KEY)
 
 else:  # mode topic
@@ -71,7 +68,6 @@ if content_json is None:
 try:
     default_16_9_slide_size = (Inches(5.625), Inches(10))
     prs = Presentation(TEMPLATE_PPTX)
-    # if (prs.slide_width / prs.slide_height) == 16/9:
     if not (prs.slide_height == default_16_9_slide_size[0]*914400 
             and prs.slide_width == default_16_9_slide_size[1]*914400):
         print(f"Use template from {TEMPLATE_PPTX}")
@@ -91,6 +87,18 @@ for i in range(len(prs.slides) - 1, -1, -1):
     rId = prs.slides._sldIdLst[i].rId
     prs.part.drop_rel(rId)
     del prs.slides._sldIdLst[i]
+
+# get_title_query = create_query_get_title(content_json)
+# title = query_from_API(query=get_title_query, token=POE_API_KEY)
+title = topic
+slide_title = prs.slides.add_slide(prs.slide_layouts[0])
+title_box = slide_title.shapes.title
+title_box.text =  title.capitalize()
+for i, place_holder in enumerate(slide_title.placeholders):
+    if i < 1:
+        continue
+    sp = place_holder.element
+    sp.getparent().remove(sp)
 
 key = list(content_json.keys())[0]
 

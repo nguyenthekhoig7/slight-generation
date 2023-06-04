@@ -152,3 +152,10 @@ def read_response_file(response_file: str):
     with open(response_file, "r") as f:
         content = f.read()
     return content
+
+def create_query_get_title(document):
+    get_title_query = (
+        "Summarize the following document into a short title. Your response should contain only a short title of less than 10 words, nothing other than that, a less-than-10-word title. Here is the document: \n"
+        + str(document)
+    )
+    return get_title_query
