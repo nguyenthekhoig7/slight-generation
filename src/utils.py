@@ -1,5 +1,9 @@
 import os
 import re
+import aspose.slides as slides
+import aspose.pydrawing as drawing
+
+regex = r"<text.*>.*Aspose.*</text>"
 
 
 def process_header(title: str):
@@ -57,3 +61,24 @@ def get_layout_id(presentation):
             break
         layout_id += 1
     return layout_id
+
+
+def convert_pptx_to_svg(pptx_file, output_folder):
+    with slides.Presentation(pptx_file) as presentation:
+        for slide in presentation.slides:
+            svg_file_name = os.path.join(output_folder, "slide_{0}.svg".format(str(slide.slide_number)))
+            with open(svg_file_name, "wb") as file:
+                slide.write_as_svg(file)
+
+            with open(svg_file_name, encoding="utf-8") as f:
+                data = f.readlines()
+
+            for i, d in enumerate(data):
+                result = re.findall(regex, d)
+                if len(re.findall(regex, d)) > 0:
+                    for r in result:
+                        print(r)
+                        data[i] = data[i].replace(r, "")
+
+            with open(svg_file_name, "w", encoding="utf-8") as f:
+                f.writelines(data)
