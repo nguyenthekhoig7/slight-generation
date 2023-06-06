@@ -3,7 +3,7 @@ import re
 import aspose.slides as slides
 import aspose.pydrawing as drawing
 
-regex = r"<text.*>.*Aspose.*</text>"
+regex = r"</g><text.*>.*Aspose.*</text>"
 
 
 def process_header(title: str):
@@ -34,7 +34,7 @@ def change_name_if_duplicated(init_name):
                 init_name = re.sub(r"\((\d+)\)", lambda match: "(" + str(int(match.group(1)) + 1) + ")", init_name)
             else:
                 try:
-                    init_name = init_name.replace(".pptx", f"({i}).pptx")
+                    init_name = init_name.replace(".pptx", f" ({i}).pptx")
                 except:
                     print("Cannot change name")
                     return None
@@ -77,8 +77,7 @@ def convert_pptx_to_svg(pptx_file, output_folder):
                 result = re.findall(regex, d)
                 if len(re.findall(regex, d)) > 0:
                     for r in result:
-                        print(r)
-                        data[i] = data[i].replace(r, "")
+                        data[i] = data[i].replace(r[4:], "")
 
             with open(svg_file_name, "w", encoding="utf-8") as f:
                 f.writelines(data)

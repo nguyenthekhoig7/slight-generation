@@ -20,19 +20,15 @@ CHOSEN_FONT = os.path.join(FONT_FOLDER, "Calibri Regular.ttf")
 
 app = FastAPI()
 
-    
-
 
 @app.post("/generate/")
 async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_words_per_slide: Optional[int] = 70):
-    """
-    
-    """
+    """ """
     if mode == 0:
         text_query = create_query_from_text(topic, type_of_text="topic", n_slides=n_slides, n_words_per_slide=n_words_per_slide)
     else:
         text_query = create_query_from_text(topic, type_of_text="doc", n_slides=n_slides, n_words_per_slide=n_words_per_slide)
-        
+
     response = query_from_API(query=text_query, token=POE_API_KEY)
     content_json = create_content_json(response)
 
@@ -43,7 +39,9 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
     try:
         default_16_9_slide_size = (Inches(5.625), Inches(10))
         prs = Presentation(TEMPLATE_PPTX)
-        if not (prs.slide_height == default_16_9_slide_size[0] * 914400 and prs.slide_width == default_16_9_slide_size[1] * 914400):
+        if not (
+            prs.slide_height == default_16_9_slide_size[0] * 914400 and prs.slide_width == default_16_9_slide_size[1] * 914400
+        ):
             print(f"Use template from {TEMPLATE_PPTX}")
         else:
             prs = Presentation()
@@ -90,7 +88,7 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
             try:
                 downloader.download(
                     image_query,
-                    limit=10,
+                    limit=1,
                     output_dir=IMAGE_FOLDER,
                     force_replace=False,
                     timeout=10,
@@ -132,24 +130,14 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
         text_frame.fit_text(font_file=CHOSEN_FONT, max_size=22)
         text_frame.word_wrap = True
 
-    output_pptx_path = "data/output_2.pptx"
-    #output_pptx_path = change_name_if_duplicated(output_pptx_path)
+    # output_pptx_path = "data/output_2.pptx"
+    output_pptx_path = os.path.join("data", topic.replace(" ", "_") + ".pptx")
+    output_pptx_path = change_name_if_duplicated(output_pptx_path)
     prs.save(output_pptx_path)
-    print(f"Presentation saved to {output_pptx_path}")
+
+    output_folder = os.path.splitext(output_pptx_path)[-2]
+    os.makedirs(output_folder)
+    convert_pptx_to_svg(pptx_file=output_pptx_path, output_folder=output_folder)
+    print(f"Presentation saved to {output_folder}")
 
     return content_json
-
-
-from pydantic import BaseModel
-
-
-class Item(BaseModel):
-    name: str
-    description: str | None = None
-    price: float
-    tax: float | None = None
-
-
-@app.post("/items/")
-async def create_item(item: Item):
-    return item
