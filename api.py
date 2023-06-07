@@ -7,9 +7,18 @@ from pptx.util import Inches
 from pptx import Presentation
 from api_key import POE_API_KEY
 from bing_image_downloader import downloader
+from bing_image_urls import bing_image_urls
 
 from src.utils import *
 from src.text_gen import *
+
+import requests
+
+import random
+import io
+import urllib
+
+from fastapi.responses import FileResponse
 
 
 DATA_FOLDER = r"data"
@@ -83,21 +92,36 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
     for item in content_json[key]:
         header, content = process_header(item["header"]), item["content"]
         image_query = f"{header}_{topic}".replace(" ", "_")
-        image = None
+        image_pil = None
         if "Introduction" not in image_query:
             try:
-                downloader.download(
-                    image_query,
-                    limit=1,
-                    output_dir=IMAGE_FOLDER,
-                    force_replace=False,
-                    timeout=10,
-                    verbose=False,
-                )
+                # downloader.download(
+                #     image_query,
+                #     limit=1,
+                #     output_dir=IMAGE_FOLDER,
+                #     force_replace=False,
+                #     filter="photo",
+                #     timeout=10,
+                #     verbose=False,
+                # )
 
-                image_folder_path = os.path.join(IMAGE_FOLDER, image_query)
-                image_path = os.path.join(image_folder_path, os.listdir(image_folder_path)[0])
-                image = Image.open(image_path)
+                # image_folder_path = os.path.join(IMAGE_FOLDER, image_query)
+                # image_path = os.path.join(image_folder_path, os.listdir(image_folder_path)[0])
+                # image = Image.open(image_path)
+                image_urls = bing_image_urls(image_query, limit=100)
+                random.shuffle(image_urls)
+                for url in image_urls:
+                    try:
+                        image_content = urllib.request.urlopen(url)
+                        image_pil = Image.open(image_content)
+                        image_out = io.BytesIO()
+                        image_pil.save(image_out, format="PNG")
+                        break
+                    except:
+                        print("Cannot download image from url: {}".format(url))
+                        continue
+
+                print('Downloaded image {} for slide "{}"'.format(url, header))
             except Exception as e:
                 print(e)
 
@@ -113,13 +137,13 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
             sp = place_holder.element
             sp.getparent().remove(sp)
 
-        if image:
-            w, h = image.size
+        if image_pil:
+            w, h = image_pil.size
             try:
                 if w / h > img_slot_ratio:  # image longer than slot -> resize image to fit slot_width
-                    picture = slide.shapes.add_picture(image_path, img_slot["left"], img_slot["top"], width=img_slot["width"])
+                    picture = slide.shapes.add_picture(image_out, img_slot["left"], img_slot["top"], width=img_slot["width"])
                 else:
-                    picture = slide.shapes.add_picture(image_path, img_slot["left"], img_slot["top"], height=img_slot["height"])
+                    picture = slide.shapes.add_picture(image_out, img_slot["left"], img_slot["top"], height=img_slot["height"])
             except Exception as e:
                 print("Cannot add picture. ", e)
 
@@ -130,14 +154,14 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
         text_frame.fit_text(font_file=CHOSEN_FONT, max_size=22)
         text_frame.word_wrap = True
 
-    # output_pptx_path = "data/output_2.pptx"
     output_pptx_path = os.path.join("data", topic.replace(" ", "_") + ".pptx")
     output_pptx_path = change_name_if_duplicated(output_pptx_path)
     prs.save(output_pptx_path)
 
     output_folder = os.path.splitext(output_pptx_path)[-2]
     os.makedirs(output_folder)
-    convert_pptx_to_svg(pptx_file=output_pptx_path, output_folder=output_folder)
+    # convert_pptx_to_svg(pptx_file=output_pptx_path, output_folder=output_folder)
     print(f"Presentation saved to {output_folder}")
 
-    return content_json
+    
+    return FileResponse(output_pptx_path, filename=output_pptx_path.split("/")[-1], media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation")

@@ -78,7 +78,7 @@ def create_query_from_topic(topic: str, n_slides: int = 10, n_words_per_slide: i
     topic_query = (
         f"Generate a {n_slides} slide presentation for the topic. Produce {n_words_per_slide-5} to {n_words_per_slide+5} words per slide. "
         + topic
-        + ". Each slide should have a  {{header}}, {{content}}. The final slide should be a list of discussion questions. Return as JSON, only JSON, not the code to generate JSON."
+        + ". Each slide should have a  {{header}}, {{content}}. The final slide should be some discussion questions, seperated by a newline character. Return as JSON, only JSON, not the code to generate JSON."
     )
 
     query = query.replace("[[QUERY]]", topic_query)
@@ -95,7 +95,7 @@ def create_query_from_document(document_content: str, n_slides: int = 10, n_word
     }"""
     topic_query = (
         f"Generate a {n_slides} slide presentation from the document provided. Produce {n_words_per_slide-5} to {n_words_per_slide+5} words per slide. "
-        + ". Each slide should have a  {{header}}, {{content}}. The first slide should only contain the short title. The final slide should be a list of discussion questions. Return as JSON, only JSON, not the code to generate JSON."
+        + ". Each slide should have a  {{header}}, {{content}}. The first slide should only contain the short title. The final slide should be some discussion questions, seperated by a newline character. Return as JSON, only JSON, not the code to generate JSON."
         + " Here is the document: \n"
         + document_content
     )
@@ -141,7 +141,7 @@ def create_query_read_document(docu_file: str, n_slides: int = 10, n_words_per_s
     }"""
     topic_query = (
         f"Generate a {n_slides} slide presentation from the document provided. Produce {n_words_per_slide-5} to {n_words_per_slide+5} words per slide. "
-        + ". Each slide should have a  {{header}}, {{content}}. The first slide should only contain the short title. The final slide should be a list of discussion questions. Return as JSON, only JSON, not the code to generate JSON."
+        + ". Each slide should have a  {{header}}, {{content}}. The first slide should only contain the short title. The final slide should be some discussion questions, seperated by a newline character. Return as JSON, only JSON, not the code to generate JSON."
         + " Here is the document: \n"
         + docu
     )
