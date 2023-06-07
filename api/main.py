@@ -23,6 +23,8 @@ from fastapi.responses import FileResponse
 
 
 DATA_FOLDER = r"data"
+os.makedirs(DATA_FOLDER, exist_ok=True)
+
 FONT_FOLDER = r"fonts"
 IMAGE_FOLDER = os.path.join(r"images")
 TEMPLATE_PPTX = os.path.join(DATA_FOLDER, "template.pptx")
