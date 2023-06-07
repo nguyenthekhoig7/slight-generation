@@ -195,7 +195,7 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
     print(f"Presentation saved to {output_folder}")
 
     files_response = []
-    for file in glob.glob(os.path.join(output_folder, "*.svg")):
+    for file in sorted(glob.glob(os.path.join(output_folder, "*.svg"))):
         files_response.append(FileResponse(file, 
                             filename=file.split("/")[-1], 
                             # media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation")

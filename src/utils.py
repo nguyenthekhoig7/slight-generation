@@ -66,7 +66,7 @@ def get_layout_id(presentation):
 def convert_pptx_to_svg(pptx_file, output_folder):
     with slides.Presentation(pptx_file) as presentation:
         for slide in presentation.slides:
-            svg_file_name = os.path.join(output_folder, "slide_{0:06d}.svg".format(str(slide.slide_number)))
+            svg_file_name = os.path.join(output_folder, "slide_{0:<06}.svg".format(slide.slide_number))
             with open(svg_file_name, "wb") as file:
                 slide.write_as_svg(file)
 
