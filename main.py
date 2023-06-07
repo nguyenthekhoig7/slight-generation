@@ -17,7 +17,7 @@ import requests
 import random
 import io
 import urllib
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 
 
 
@@ -120,7 +120,8 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
     img_slot = {"left": Inches(6), "top": Inches(1.6), "width": Inches(3.6), "height": Inches(3.6)}
     img_slot_ratio = img_slot["width"] / img_slot["height"]
 
-    for item in content_json[key]:
+    returned_content_json = content_json[key]
+    for item in returned_content_json:
         header, content = process_header(item["header"]), item["content"]
         image_query = f"{header}_{topic}".replace(" ", "_")
         image_pil = None
@@ -139,8 +140,8 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
                 # image_folder_path = os.path.join(IMAGE_FOLDER, image_query)
                 # image_path = os.path.join(image_folder_path, os.listdir(image_folder_path)[0])
                 # image = Image.open(image_path)
-                image_urls = bing_image_urls(image_query, limit=100)
-                random.shuffle(image_urls)
+                image_urls = bing_image_urls(image_query, limit=10)
+                # random.shuffle(image_urls)
                 for url in image_urls:
                     try:
                         image_content = urllib.request.urlopen(url, timeout=3)
@@ -151,7 +152,7 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
                     except:
                         print("Cannot download image from url: {}".format(url))
                         continue
-
+                item["image_url"] = url
                 print('Downloaded image {} for slide "{}"'.format(url, header))
             except Exception as e:
                 print(e)
@@ -191,17 +192,21 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
 
     output_folder = os.path.splitext(output_pptx_path)[-2]
     os.makedirs(output_folder)
-    convert_pptx_to_svg(pptx_file=output_pptx_path, output_folder=output_folder)
+    # convert_pptx_to_svg(pptx_file=output_pptx_path, output_folder=output_folder)
     print(f"Presentation saved to {output_folder}")
 
-    files_response = []
-    for file in sorted(glob.glob(os.path.join(output_folder, "*.svg"))):
-        files_response.append(FileResponse(file, 
-                            filename=file.split("/")[-1], 
-                            # media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation")
-                            media_type="image/svg+xml")
-        )
-    return files_response
+    # files_response = []
+    # for file in sorted(glob.glob(os.path.join(output_folder, "*.svg"))):
+    #     files_response.append(FileResponse(file, 
+    #                         filename=file.split("/")[-1], 
+    #                         # media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation")
+    #                         media_type="image/svg+xml")
+    #     )
+    # return files_response
+    file_response = FileResponse(output_pptx_path,
+                                filename=output_pptx_path.split("/")[-1],
+                                media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation")
+    return file_response
 
 # # finally run the app
 # uvicorn.run(app, port=port)
