@@ -1,7 +1,7 @@
 import os
 import re
-# import aspose.slides as slides
-# import aspose.pydrawing as drawing
+import aspose.slides as slides
+import aspose.pydrawing as drawing
 
 regex = r"</g><text.*>.*Aspose.*</text>"
 
@@ -63,21 +63,21 @@ def get_layout_id(presentation):
     return layout_id
 
 
-# def convert_pptx_to_svg(pptx_file, output_folder):
-#     with slides.Presentation(pptx_file) as presentation:
-#         for slide in presentation.slides:
-#             svg_file_name = os.path.join(output_folder, "slide_{0}.svg".format(str(slide.slide_number)))
-#             with open(svg_file_name, "wb") as file:
-#                 slide.write_as_svg(file)
+def convert_pptx_to_svg(pptx_file, output_folder):
+    with slides.Presentation(pptx_file) as presentation:
+        for slide in presentation.slides:
+            svg_file_name = os.path.join(output_folder, "slide_{0:06d}.svg".format(str(slide.slide_number)))
+            with open(svg_file_name, "wb") as file:
+                slide.write_as_svg(file)
 
-#             with open(svg_file_name, encoding="utf-8") as f:
-#                 data = f.readlines()
+            with open(svg_file_name, encoding="utf-8") as f:
+                data = f.readlines()
 
-#             for i, d in enumerate(data):
-#                 result = re.findall(regex, d)
-#                 if len(re.findall(regex, d)) > 0:
-#                     for r in result:
-#                         data[i] = data[i].replace(r[4:], "")
+            for i, d in enumerate(data):
+                result = re.findall(regex, d)
+                if len(re.findall(regex, d)) > 0:
+                    for r in result:
+                        data[i] = data[i].replace(r[4:], "")
 
-#             with open(svg_file_name, "w", encoding="utf-8") as f:
-#                 f.writelines(data)
+            with open(svg_file_name, "w", encoding="utf-8") as f:
+                f.writelines(data)

@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, glob
 from PIL import Image
 import collections.abc
 from typing import Optional
@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from pptx.util import Inches
 from pptx import Presentation
 from api_key import *
-from bing_image_downloader import downloader
+# from bing_image_downloader import downloader
 from bing_image_urls import bing_image_urls
 
 from src.utils import *
@@ -191,11 +191,17 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
 
     output_folder = os.path.splitext(output_pptx_path)[-2]
     os.makedirs(output_folder)
-    # convert_pptx_to_svg(pptx_file=output_pptx_path, output_folder=output_folder)
+    convert_pptx_to_svg(pptx_file=output_pptx_path, output_folder=output_folder)
     print(f"Presentation saved to {output_folder}")
 
-    
-    return FileResponse(output_pptx_path, filename=output_pptx_path.split("/")[-1], media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation")
+    files_response = []
+    for file in glob.glob(os.path.join(output_folder, "*.svg")):
+        files_response.append(FileResponse(file, 
+                            filename=file.split("/")[-1], 
+                            # media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation")
+                            media_type="image/svg+xml")
+        )
+    return files_response
 
 # # finally run the app
 # uvicorn.run(app, port=port)
