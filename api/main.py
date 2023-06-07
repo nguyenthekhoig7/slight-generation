@@ -19,9 +19,6 @@ import random
 import io
 import urllib
 from fastapi.responses import FileResponse
-from fastapi.logger import logger
-from pathlib import Path
-from pydantic import BaseSettings
 
 
 
@@ -44,21 +41,21 @@ app.add_middleware(
     allow_headers=['*'], # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers
 )
 
-import nest_asyncio
-from pyngrok import ngrok
-import uvicorn
+# import nest_asyncio
+# from pyngrok import ngrok
+# import uvicorn
 
-ngrok.set_auth_token(NGROK_TOKEN)
+# ngrok.set_auth_token(NGROK_TOKEN)
 
-# specify a port
-port = 8000
-ngrok_tunnel = ngrok.connect(port)
+# # specify a port
+# port = 8000
+# ngrok_tunnel = ngrok.connect(port)
 
-# where we can visit our fastAPI app
-print('Public URL:', ngrok_tunnel.public_url)
+# # where we can visit our fastAPI app
+# print('Public URL:', ngrok_tunnel.public_url)
 
 
-nest_asyncio.apply()
+# nest_asyncio.apply()
 
 
 
@@ -145,7 +142,7 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
                 random.shuffle(image_urls)
                 for url in image_urls:
                     try:
-                        image_content = urllib.request.urlopen(url, timeout=5)
+                        image_content = urllib.request.urlopen(url, timeout=3)
                         image_pil = Image.open(image_content)
                         image_out = io.BytesIO()
                         image_pil.save(image_out, format="PNG")
@@ -199,5 +196,5 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
     
     return FileResponse(output_pptx_path, filename=output_pptx_path.split("/")[-1], media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation")
 
-# finally run the app
-uvicorn.run(app, port=port)
+# # finally run the app
+# uvicorn.run(app, port=port)
