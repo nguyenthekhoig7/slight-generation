@@ -1,11 +1,12 @@
-import os
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from PIL import Image
 import collections.abc
 from typing import Optional
 from fastapi import FastAPI
 from pptx.util import Inches
 from pptx import Presentation
-from api_key import POE_API_KEY
+from api_key import *
 from bing_image_downloader import downloader
 from bing_image_urls import bing_image_urls
 
@@ -17,8 +18,11 @@ import requests
 import random
 import io
 import urllib
-
 from fastapi.responses import FileResponse
+from fastapi.logger import logger
+from pathlib import Path
+from pydantic import BaseSettings
+
 
 
 DATA_FOLDER = r"data"
@@ -27,7 +31,36 @@ IMAGE_FOLDER = os.path.join(r"images")
 TEMPLATE_PPTX = os.path.join(DATA_FOLDER, "template.pptx")
 CHOSEN_FONT = os.path.join(FONT_FOLDER, "Calibri Regular.ttf")
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+
+# middlewares
+app.add_middleware(
+    CORSMiddleware, # https://fastapi.tiangolo.com/tutorial/cors/
+    allow_origins=['*'], # wildcard to allow all, more here - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
+    allow_credentials=True, # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials
+    allow_methods=['*'], # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods
+    allow_headers=['*'], # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers
+)
+
+import nest_asyncio
+from pyngrok import ngrok
+import uvicorn
+
+ngrok.set_auth_token(NGROK_TOKEN)
+
+# specify a port
+port = 8000
+ngrok_tunnel = ngrok.connect(port)
+
+# where we can visit our fastAPI app
+print('Public URL:', ngrok_tunnel.public_url)
+
+
+nest_asyncio.apply()
+
+
 
 
 @app.post("/generate/")
@@ -112,7 +145,7 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
                 random.shuffle(image_urls)
                 for url in image_urls:
                     try:
-                        image_content = urllib.request.urlopen(url)
+                        image_content = urllib.request.urlopen(url, timeout=5)
                         image_pil = Image.open(image_content)
                         image_out = io.BytesIO()
                         image_pil.save(image_out, format="PNG")
@@ -165,3 +198,6 @@ async def generate(topic: str, mode: int = 0, n_slides: Optional[int] = 10, n_wo
 
     
     return FileResponse(output_pptx_path, filename=output_pptx_path.split("/")[-1], media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation")
+
+# finally run the app
+uvicorn.run(app, port=port)

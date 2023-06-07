@@ -162,7 +162,8 @@ def query_from_API(query: str, token: str, bot_name: str = "chinchilla") -> str:
 
         # delete the 3 latest messages, including the chat break
         client.purge_conversation(bot_name, count=3)
-    except:
+    except Exception as e:
+        print(e)
         pass
     return response
 

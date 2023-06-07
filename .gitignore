@@ -168,3 +168,4 @@ data/
 test/
 test*
 templates/
+.vercel
