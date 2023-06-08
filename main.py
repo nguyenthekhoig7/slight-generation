@@ -1,27 +1,26 @@
-import sys, os
+import io
+import os
+import urllib
+import random
 from PIL import Image
 from typing import Optional
 from fastapi import FastAPI
 from pptx.util import Inches
 from pptx import Presentation
-from api_key import *
+from pydantic import BaseModel
+from fastapi.responses import FileResponse
 from bing_image_urls import bing_image_urls
 
 from src.utils import *
 from src.text_gen import *
-
-import random
-import io
-import urllib
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
-
-
+from api_key import *
 
 DATA_FOLDER = r"data"
+FONT_FOLDER = r"fonts"
+TEMPLATE_FOLDER = r"pptx_templates"
+template_names = os.listdir(TEMPLATE_FOLDER)
 os.makedirs(DATA_FOLDER, exist_ok=True)
 
-FONT_FOLDER = r"fonts"
 IMAGE_FOLDER = os.path.join(r"images")
 TEMPLATE_PPTX = os.path.join(DATA_FOLDER, "template.pptx")
 CHOSEN_FONT = os.path.join(FONT_FOLDER, "Calibri Regular.ttf")
@@ -32,11 +31,11 @@ app = FastAPI()
 
 # middlewares
 app.add_middleware(
-    CORSMiddleware, 
-    allow_origins=['*'], 
-    allow_credentials=True, 
-    allow_methods=['*'], 
-    allow_headers=['*'],
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # import nest_asyncio
@@ -55,20 +54,26 @@ app.add_middleware(
 
 # nest_asyncio.apply()
 
+
 class Input(BaseModel):
-    topic : str
-    mode : int = 0
-    n_slides : Optional[int] = 10
-    n_words_per_slide : Optional[int] = 70
-    api_token : str = None
+    topic: str
+    mode: int = 0
+    n_slides: Optional[int] = 10
+    n_words_per_slide: Optional[int] = 70
+    api_token: str = None
+
 
 @app.post("/generate/")
 async def generate(inp_params: Input):
     """ """
     if inp_params.mode == 0:
-        text_query = create_query_from_text(inp_params.topic, type_of_text="topic", n_slides=inp_params.n_slides, n_words_per_slide=inp_params.n_words_per_slide)
+        text_query = create_query_from_text(
+            inp_params.topic, type_of_text="topic", n_slides=inp_params.n_slides, n_words_per_slide=inp_params.n_words_per_slide
+        )
     else:
-        text_query = create_query_from_text(inp_params.topic, type_of_text="doc", n_slides=inp_params.n_slides, n_words_per_slide=inp_params.n_words_per_slide)
+        text_query = create_query_from_text(
+            inp_params.topic, type_of_text="doc", n_slides=inp_params.n_slides, n_words_per_slide=inp_params.n_words_per_slide
+        )
 
     response = query_from_API(query=text_query, token=inp_params.api_token)
     content_json = create_content_json(response)
@@ -77,6 +82,7 @@ async def generate(inp_params: Input):
         print("Cannot extract json from text. Cannot create a presentation. Stopped.")
         exit()
 
+    TEMPLATE_PPTX = os.path.join(TEMPLATE_FOLDER, random.choice(template_names))
     try:
         default_16_9_slide_size = (Inches(5.625), Inches(10))
         prs = Presentation(TEMPLATE_PPTX)
@@ -195,10 +201,12 @@ async def generate(inp_params: Input):
     # convert_pptx_to_svg(pptx_file=output_pptx_path, output_folder=output_folder)
     print(f"Presentation saved to {output_folder}")
 
-    
-    return FileResponse(output_pptx_path, 
-                        filename=output_pptx_path.split("/")[-1], 
-                        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation")
+    return FileResponse(
+        output_pptx_path,
+        filename=output_pptx_path.split("/")[-1],
+        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    )
+
 
 # # finally run the app
 # uvicorn.run(app, port=port)
