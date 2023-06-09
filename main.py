@@ -143,6 +143,7 @@ async def generate(inp_params: Input):
                     limit=1,
                     output_dir=IMAGE_FOLDER,
                     force_replace=False,
+                    adult_filter_off=False,
                     filter="photo",
                     timeout=10,
                     verbose=False,
