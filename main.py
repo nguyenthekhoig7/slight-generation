@@ -12,7 +12,6 @@ from pydantic import BaseModel
 from fastapi.responses import FileResponse
 from bing_image_urls import bing_image_urls
 from fastapi.middleware.cors import CORSMiddleware
-from sentence_transformers import SentenceTransformer
 
 from src.utils import *
 from src.text_gen import *
@@ -21,15 +20,12 @@ from api_key import *
 DATA_FOLDER = r"data"
 FONT_FOLDER = r"fonts"
 TEMPLATE_FOLDER = r"pptx_templates"
-template_names = [file_name.replace(".pptx", "") for file_name in os.listdir(TEMPLATE_FOLDER)]
+template_names = os.listdir(TEMPLATE_FOLDER)
 os.makedirs(DATA_FOLDER, exist_ok=True)
 
 IMAGE_FOLDER = os.path.join(r"images")
 TEMPLATE_PPTX = os.path.join(DATA_FOLDER, "template.pptx")
 CHOSEN_FONT = os.path.join(FONT_FOLDER, "Calibri Regular.ttf")
-
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-emb_template_names = model.encode(template_names)
 
 app = FastAPI()
 
@@ -86,9 +82,7 @@ async def generate(inp_params: Input):
         print("Cannot extract json from text. Cannot create a presentation. Stopped.")
         exit()
 
-    chosen_template_name = template_names[np.argmax(model.encode(inp_params.topic) @ emb_template_names.T)] + ".pptx"
-
-    TEMPLATE_PPTX = os.path.join(TEMPLATE_FOLDER, chosen_template_name)
+    TEMPLATE_PPTX = os.path.join(TEMPLATE_FOLDER, random.choice(template_names))
     try:
         default_16_9_slide_size = (Inches(5.625), Inches(10))
         prs = Presentation(TEMPLATE_PPTX)
