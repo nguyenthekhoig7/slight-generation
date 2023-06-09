@@ -1,5 +1,6 @@
 import io
 import os
+import gc
 import urllib
 import random
 import numpy as np
@@ -65,7 +66,6 @@ class Input(BaseModel):
 
 @app.post("/generate/")
 async def generate(inp_params: Input):
-    """ """
     if inp_params.mode == 0:
         text_query = create_query_from_text(
             inp_params.topic, type_of_text="topic", n_slides=inp_params.n_slides, n_words_per_slide=inp_params.n_words_per_slide
@@ -182,6 +182,9 @@ async def generate(inp_params: Input):
                     picture = slide.shapes.add_picture(image_out, img_slot["left"], img_slot["top"], width=img_slot["width"])
                 else:
                     picture = slide.shapes.add_picture(image_out, img_slot["left"], img_slot["top"], height=img_slot["height"])
+
+                del image_out
+                del image_pil
             except Exception as e:
                 print("Cannot add picture. ", e)
 
@@ -200,6 +203,8 @@ async def generate(inp_params: Input):
     os.makedirs(output_folder)
     # convert_pptx_to_svg(pptx_file=output_pptx_path, output_folder=output_folder)
     print(f"Presentation saved to {output_folder}")
+
+    gc.collect()
 
     return FileResponse(
         output_pptx_path,
