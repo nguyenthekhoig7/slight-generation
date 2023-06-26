@@ -1,5 +1,6 @@
 import io
 import os
+import gc
 import urllib
 import random
 import numpy as np
@@ -10,12 +11,15 @@ from pptx.util import Inches
 from pptx import Presentation
 from pydantic import BaseModel
 from fastapi.responses import FileResponse
-from bing_image_urls import bing_image_urls
+from bing_image_downloader import downloader
+# from bing_image_urls import bing_image_urls
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.utils import *
 from src.text_gen import *
 from api_key import *
+
+import shutil
 
 DATA_FOLDER = r"data"
 FONT_FOLDER = r"fonts"
@@ -65,7 +69,8 @@ class Input(BaseModel):
 
 @app.post("/generate/")
 async def generate(inp_params: Input):
-    """ """
+    if inp_params.api_token is None:
+        inp_params.api_token = POE_API_KEY
     if inp_params.mode == 0:
         text_query = create_query_from_text(
             inp_params.topic, type_of_text="topic", n_slides=inp_params.n_slides, n_words_per_slide=inp_params.n_words_per_slide
@@ -130,36 +135,39 @@ async def generate(inp_params: Input):
     for item in content_json[key]:
         header, content = process_header(item["header"]), item["content"]
         image_query = f"{header}_{inp_params.topic}".replace(" ", "_")
-        image_pil = None
+        image = None
         if "Introduction" not in image_query:
             try:
-                # downloader.download(
-                #     image_query,
-                #     limit=1,
-                #     output_dir=IMAGE_FOLDER,
-                #     force_replace=False,
-                #     filter="photo",
-                #     timeout=10,
-                #     verbose=False,
-                # )
+                downloader.download(
+                    image_query,
+                    limit=1,
+                    output_dir=IMAGE_FOLDER,
+                    force_replace=False,
+                    adult_filter_off=False,
+                    filter="photo",
+                    timeout=10,
+                    verbose=False,
+                )
 
-                # image_folder_path = os.path.join(IMAGE_FOLDER, image_query)
-                # image_path = os.path.join(image_folder_path, os.listdir(image_folder_path)[0])
-                # image = Image.open(image_path)
-                image_urls = bing_image_urls(image_query, limit=10)
-                random.shuffle(image_urls)
-                for url in image_urls:
-                    try:
-                        image_content = urllib.request.urlopen(url, timeout=3)
-                        image_pil = Image.open(image_content)
-                        image_out = io.BytesIO()
-                        image_pil.save(image_out, format="PNG")
-                        break
-                    except:
-                        print("Cannot download image from url: {}".format(url))
-                        continue
+                image_folder_path = os.path.join(IMAGE_FOLDER, image_query)
+                image_path = os.path.join(image_folder_path, os.listdir(image_folder_path)[0])
+                image = Image.open(image_path)
+                print(image_path)
+                
+                # image_urls = bing_image_urls(image_query, limit=10)
+                # random.shuffle(image_urls)
+                # for url in image_urls:
+                #     try:
+                #         image_content = urllib.request.urlopen(url, timeout=3)
+                #         image_pil = Image.open(image_content)
+                #         image_out = io.BytesIO()
+                #         image_pil.save(image_out, format="PNG")
+                #         break
+                #     except:
+                #         print("Cannot download image from url: {}".format(url))
+                #         continue
 
-                print('Downloaded image {} for slide "{}"'.format(url, header))
+                print('Downloaded image for slide "{}"'.format(header))
             except Exception as e:
                 print(e)
 
@@ -175,13 +183,16 @@ async def generate(inp_params: Input):
             sp = place_holder.element
             sp.getparent().remove(sp)
 
-        if image_pil:
-            w, h = image_pil.size
+        if image:
+            w, h = image.size
             try:
                 if w / h > img_slot_ratio:  # image longer than slot -> resize image to fit slot_width
-                    picture = slide.shapes.add_picture(image_out, img_slot["left"], img_slot["top"], width=img_slot["width"])
+                    slide.shapes.add_picture(image_path, img_slot["left"], img_slot["top"], width=img_slot["width"])
                 else:
-                    picture = slide.shapes.add_picture(image_out, img_slot["left"], img_slot["top"], height=img_slot["height"])
+                    slide.shapes.add_picture(image_path, img_slot["left"], img_slot["top"], height=img_slot["height"])
+                shutil.rmtree(image_folder_path)
+                del image
+                
             except Exception as e:
                 print("Cannot add picture. ", e)
 
@@ -192,14 +203,15 @@ async def generate(inp_params: Input):
         text_frame.fit_text(font_file=CHOSEN_FONT, max_size=22)
         text_frame.word_wrap = True
 
+
     output_pptx_path = os.path.join("data", inp_params.topic.replace(" ", "_") + ".pptx")
     output_pptx_path = change_name_if_duplicated(output_pptx_path)
     prs.save(output_pptx_path)
 
-    output_folder = os.path.splitext(output_pptx_path)[-2]
-    os.makedirs(output_folder)
+    # output_folder = os.path.splitext(output_pptx_path)[-2]
+    # os.makedirs(output_folder)
     # convert_pptx_to_svg(pptx_file=output_pptx_path, output_folder=output_folder)
-    print(f"Presentation saved to {output_folder}")
+    print(f"Presentation saved to {output_pptx_path}")
 
     return FileResponse(
         output_pptx_path,
