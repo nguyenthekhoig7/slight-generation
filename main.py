@@ -112,7 +112,7 @@ async def generate(inp_params: Input):
     title = inp_params.topic
     slide_title = prs.slides.add_slide(prs.slide_layouts[0])
     title_box = slide_title.shapes.title
-    title_box.text = title.capitalize()
+    title_box.text = title.upper()
     for i, place_holder in enumerate(slide_title.placeholders):
         if i < 1:
             continue

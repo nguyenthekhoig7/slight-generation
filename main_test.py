@@ -19,7 +19,8 @@ import time
 DATA_FOLDER = r"data"
 FONT_FOLDER = r"fonts"
 IMAGE_FOLDER = os.path.join(r"images")
-TEMPLATE_PPTX = os.path.join(DATA_FOLDER, "template.pptx")
+TEMPLATE_FOLDER = os.path.join("pptx_templates")
+template_names = os.listdir(TEMPLATE_FOLDER)
 CHOSEN_FONT = os.path.join(FONT_FOLDER, "Calibri Regular.ttf")
 
 print("############################# SLIGHT #############################")
@@ -65,6 +66,7 @@ if content_json is None:
     print("Cannot extract json from text. Cannot create a presentation. Stopped.")
     exit()
 
+TEMPLATE_PPTX = os.path.join(TEMPLATE_FOLDER, random.choice(template_names))
 try:
     default_16_9_slide_size = (Inches(5.625), Inches(10))
     prs = Presentation(TEMPLATE_PPTX)
@@ -92,7 +94,7 @@ for i in range(len(prs.slides) - 1, -1, -1):
 title = topic
 slide_title = prs.slides.add_slide(prs.slide_layouts[0])
 title_box = slide_title.shapes.title
-title_box.text = title.capitalize()
+title_box.text = title.upper()
 for i, place_holder in enumerate(slide_title.placeholders):
     if i < 1:
         continue

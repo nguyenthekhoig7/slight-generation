@@ -5,7 +5,13 @@ import json
 import pypandoc
 import pdfplumber
 
-
+query_structure = """{
+"input_text": "[[QUERY]]",
+"output_format": "json",
+"json_structure": {
+    "slides":"{{presentation_slides}}"
+    }
+}"""
 def create_content_json(response: str):
     """
     This function gets the response from Poe API and
@@ -66,33 +72,18 @@ def create_query_from_text(text: str, type_of_text, n_slides: int = 10, n_words_
         return create_query_from_topic(topic=text, n_slides=n_slides, n_words_per_slide=n_words_per_slide)
 
 
-def create_query_from_topic(topic: str, n_slides: int = 10, n_words_per_slide: int = 55):
-    query = """{
-    "input_text": "[[QUERY]]",
-    "output_format": "json",
-    "json_structure": {
-        "slides":"{{presentation_slides}}"
-       }
-    }"""
-
+def create_query_from_topic(topic: str, n_slides: int = 10, n_words_per_slide: int = 55, query=query_structure):
     topic_query = (
         f"Generate a {n_slides} slide presentation for the topic. Produce {n_words_per_slide-5} to {n_words_per_slide+5} words per slide. "
         + topic
-        + ". Each slide should have a  {{header}}, {{content}}. The final slide should be some discussion questions, seperated by a newline character. Return as JSON, only JSON, not the code to generate JSON."
+        + ". Each slide should have a  {{header}}, {{content}}. The final slide should be a thank-you-slide, seperated by a newline character. Return as JSON, only JSON, not the code to generate JSON."
     )
 
     query = query.replace("[[QUERY]]", topic_query)
     return query
 
 
-def create_query_from_document(document_content: str, n_slides: int = 10, n_words_per_slide: int = 55):
-    query = """{
-    "input_text": "[[QUERY]]",
-    "output_format": "json",
-    "json_structure": {
-        "slides":"{{presentation_slides}}"
-       }
-    }"""
+def create_query_from_document(document_content: str, n_slides: int = 10, n_words_per_slide: int = 55, query=query_structure):
     topic_query = (
         f"Generate a {n_slides} slide presentation from the document provided. Produce {n_words_per_slide-5} to {n_words_per_slide+5} words per slide. "
         + ". Each slide should have a  {{header}}, {{content}}. The first slide should only contain the short title. The final slide should be some discussion questions, seperated by a newline character. Return as JSON, only JSON, not the code to generate JSON."

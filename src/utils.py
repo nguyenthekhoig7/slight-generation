@@ -56,7 +56,11 @@ def get_layout_id(presentation):
             print("Template does not have any title that is suitable.")
             return None
         slide = presentation.slides.add_slide(slide_layout)
-        shape = slide.placeholders[0]
+        try:
+            shape = slide.placeholders[0]
+        except:
+            print("Template does not have any placeholder in the title slide.")
+            return None
         if shape.top / presentation.slide_height < 0.2:
             # print('top/totalheight = ', shape.top/presentation.slide_height)
             break
