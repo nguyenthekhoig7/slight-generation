@@ -16,6 +16,7 @@ This is a 4-step creating process on our deployed version:
 <img src="assets/create-flow.png" alt="Create Presentation" />
 
 #### Result
+This presentation was produced with the topic "Albert Einstein" (other settings left as default).
 <img src="assets/Albert-Einstein-presentation.png" alt="Sample Presentation" />
 
 ```
