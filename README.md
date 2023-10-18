@@ -8,7 +8,7 @@
 SLIGHT-GENERATION is a product aiming to help reducing the time and effort when making presentation slides. The name SLIGHT was combined from SLIDE(presentation) and LIGHT(fast and easy).
 
 ## Demo
-This is a 4-step creating on our deployed version:
+This is a 4-step creating process on our deployed version:
 - Step 1: Click `CREATE SLIDES NOW`
 - Step 2: Topic: Type in the topic you want the presentaion to be about, then click `Next`
 - Step 3: Additional settings: change anything if you want to, then click `Next`
