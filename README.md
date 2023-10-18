@@ -15,6 +15,9 @@ This is a 4-step creating process on our deployed version:
 - Step 4: Auto Generation: Wait for 1-2 minutes and a presentation will be automatically downloaded
 <img src="assets/create-flow.png" alt="Create Presentation" />
 
+#### Result
+This presentation was produced with the topic "Albert Einstein" (other settings left as default).
+<img src="assets/Albert-Einstein-presentation.png" alt="Sample Presentation" />
 
 ```
 However, since the deployment is not online currently, you can test it using command line.
